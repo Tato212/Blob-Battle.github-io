@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blob Battle</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            height: 100vh;
+            margin: 0;
+            background-color: #0d1117;
+            font-family: 'Inter', sans-serif;
+            color: #c9d1d9;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .main-ui-container {
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+            justify-content: center;
+            align-items: flex-start;
+        }
+        
+        .game-panel {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            background-color: #161b22;
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            border: 1px solid #30363d;
+            padding: 20px;
+        }
+
+        canvas {
+            border: 2px solid #30363d;
+            border-radius: 8px;
+            touch-action: none;
+            width: 100%;
+            height: 400px;
+            cursor: default;
+        }
+        
+        canvas.placement-mode {
+            cursor: crosshair;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .btn {
+            background-color: #21262d;
+            color: #c9d1d9;
+            border: 1px solid #30363d;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.4);
+        }
+
+        .btn:hover {
+            background-color: #30363d;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:disabled {
+            background-color: #1a1a1a;
+            color: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .score-board {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 250px;
+            padding: 20px;
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            height: fit-content;
+        }
+
+        .score-board span {
+            padding: 10px 15px;
+            background-color: #1f2428;
+            border-radius: 8px;
+            border: 1px solid #30363d;
+            font-size: 1rem;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .score-board h2 {
+            font-size: 1.5rem;
+            text-align: center;
+            margin: 0;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #30363d;
+        }
+        
+        .dev-commands {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .dev-commands input[type="text"] {
+            flex-grow: 1;
+            background-color: #0d1117;
+            border: 1px solid #30363d;
+            color: #c9d1d9;
+            padding: 10px;
+            border-radius: 8px;
+            max-width: 300px;
+        }
+        
+        .dev-message {
+            margin-top: 5px;
+            font-size: 0.9rem;
+            color: #f85149;
+            min-height: 20px;
+            text-align: center;
+        }
+
+        .map-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        .game-footer {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 999;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none;
+        }
+        
+        .overlay.show {
+            display: flex;
+        }
+        
+        .overlay-text {
+            color: white;
+            font-size: 2.5rem;
+            font-weight: bold;
+            text-shadow: 0 0 10px black;
+        }
+
+        /* Generic Modal Styles */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(13, 17, 23, 0.9);
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: #161b22;
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid #30363d;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            width: 90%;
+            max-width: 800px;
+        }
+        
+        .modal-content h2 {
+            margin-top: 0;
+            font-size: 2rem;
+            margin-bottom: 25px;
+        }
+
+        .modal-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        
+        .action-container {
+            display: none;
+            background-color: #0d1117;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #30363d;
+            margin-top: 10px;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+        }
+
+        .action-container.show {
+            display: grid;
+        }
+
+        .modal-btn {
+            padding: 15px 10px;
+            font-size: 1rem;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .modal-btn-desc {
+            font-size: 0.8rem;
+            font-weight: normal;
+            display: block;
+            margin-top: 5px;
+            color: #8b949e;
+        }
+
+        .difficulty-label {
+            display: block;
+            font-weight: bold;
+            margin-top: 8px;
+            font-size: 0.9rem;
+        }
+        .difficulty-easy { color: #34d058; }
+        .difficulty-normal { color: #d29922; }
+        .difficulty-hard { color: #f85149; }
+        .difficulty-nightmare { color: #a371f7; }
+
+        @media (max-width: 800px) {
+            .main-ui-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            .score-board {
+                width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-ui-container">
+        <div class="game-panel">
+            <div class="map-controls">
+                <button id="select-map-btn" class="btn">Select Map</button>
+            </div>
+            <canvas id="gameCanvas"></canvas>
+            <div class="controls">
+                 <button id="spawn-units-btn" class="btn">Spawn Units</button>
+                 <button id="defense-blueprints-btn" class="btn">Defense Blueprints</button>
+                <button id="restart-btn" class="btn">Restart Game</button>
+            </div>
+            <div id="unit-spawn-container" class="action-container">
+                <button id="spawn-btn" class="modal-btn btn">Blob <span class="modal-btn-desc">(Cost: 10)</span></button>
+                <button id="spawn-ant-btn" class="modal-btn btn">Ant <span class="modal-btn-desc">(Cost: 8)</span></button>
+                <button id="spawn-rogue-btn" class="modal-btn btn">Rogue <span class="modal-btn-desc">(Cost: 25)</span></button>
+                <button id="spawn-crossbowman-btn" class="modal-btn btn">Crossbowman <span class="modal-btn-desc">(Cost: 35)</span></button>
+                <button id="spawn-knight-btn" class="modal-btn btn">Knight <span class="modal-btn-desc">(Cost: 40)</span></button>
+                <button id="spawn-mage-btn" class="modal-btn btn">Mage <span class="modal-btn-desc">(Cost: 50)</span></button>
+                <button id="spawn-paladin-btn" class="modal-btn btn">Paladin <span class="modal-btn-desc">(Cost: 60)</span></button>
+                <button id="spawn-droid-btn" class="modal-btn btn" style="display: none;">Droid <span class="modal-btn-desc">(Cost: 5)</span></button>
+                <button id="spawn-cyborg-btn" class="modal-btn btn" style="display: none;">Cyborg (Admin)</button>
+            </div>
+            <div id="defense-spawn-container" class="action-container">
+                <button id="spawn-spiked-wall-btn" class="modal-btn btn">Spiked Wall <span class="modal-btn-desc">(Cost: 15)</span></button>
+                <button id="spawn-stone-wall-btn" class="modal-btn btn">Stone Wall <span class="modal-btn-desc">(Cost: 30)</span></button>
+                <button id="spawn-barbed-wire-btn" class="modal-btn btn">Barbed Wire <span class="modal-btn-desc">(Cost: 20)</span></button>
+                <button id="spawn-archer-tower-btn" class="modal-btn btn">Archer Tower <span class="modal-btn-desc">(Cost: 75)</span></button>
+            </div>
+            <div class="dev-commands">
+                <input type="text" id="command-input" placeholder="Enter command...">
+                <button id="run-command-btn" class="btn">Run Command</button>
+            </div>
+            <div id="dev-message" class="dev-message"></div>
+            <p class="game-footer" style="font-size: 0.9rem; margin-top: 10px;">Defend your objective against 10 waves of enemies!</p>
+        </div>
+        <div class="score-board">
+            <h2>Game Stats</h2>
+            <span id="objective-health-display">Objective: <span id="objective-health">0</span></span>
+            <span>Wave: <span id="wave-count">0</span></span>
+            <span>Enemies Left: <span id="enemy-count">0</span></span>
+            <span>Player Blobs: <span id="player-count">0</span></span>
+            <span id="player-droid-counter" style="display: none;">Player Droids: <span id="player-droid-count">0</span> / 100</span>
+            <span>Energy: <span id="energy-count">0</span></span>
+            <div style="position: relative; margin-top: 10px;">
+                <button id="campaign-btn" class="btn" style="width: 100%;">Campaign</button>
+                <span style="position: absolute; top: -5px; right: -50px; color: #f85149; transform: rotate(-15deg); font-weight: bold; pointer-events: none; text-shadow: 1px 1px #000;">Coming Soon!</span>
+            </div>
+             <button id="redeem-code-btn" class="btn">Redeem Code</button>
+        </div>
+    </div>
+    
+    <div class="overlay" id="overlay">
+        <div class="overlay-text" id="overlay-text">TIME FROZEN</div>
+    </div>
+    
+    <div class="modal" id="game-end-modal">
+        <div class="modal-content">
+            <h2 id="game-end-title"></h2>
+            <p id="game-end-message" style="font-size: 1.2rem; margin-bottom: 20px;"></p>
+            <button id="restart-game-end-btn" class="btn">Play Again</button>
+        </div>
+    </div>
+
+    <!-- Map Selection Modal -->
+    <div class="modal" id="map-modal">
+        <div class="modal-content">
+            <h2>Choose a Map</h2>
+            <div class="modal-grid" id="map-grid-container">
+                <!-- Map buttons will be generated here by JS -->
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // UI Elements
+        const selectMapBtn = document.getElementById('select-map-btn');
+        const mapModal = document.getElementById('map-modal');
+        const mapGridContainer = document.getElementById('map-grid-container');
+        
+        const spawnUnitsBtn = document.getElementById('spawn-units-btn');
+        const unitSpawnContainer = document.getElementById('unit-spawn-container');
+        const defenseBlueprintsBtn = document.getElementById('defense-blueprints-btn');
+        const defenseSpawnContainer = document.getElementById('defense-spawn-container');
+
+        const spawnBtn = document.getElementById('spawn-btn');
+        const spawnMageBtn = document.getElementById('spawn-mage-btn');
+        const spawnKnightBtn = document.getElementById('spawn-knight-btn');
+        const spawnAntBtn = document.getElementById('spawn-ant-btn');
+        const spawnCyborgBtn = document.getElementById('spawn-cyborg-btn');
+        const spawnPaladinBtn = document.getElementById('spawn-paladin-btn');
+        const spawnRogueBtn = document.getElementById('spawn-rogue-btn');
+        const spawnCrossbowmanBtn = document.getElementById('spawn-crossbowman-btn');
+        const spawnDroidBtn = document.getElementById('spawn-droid-btn');
+        const spawnSpikedWallBtn = document.getElementById('spawn-spiked-wall-btn');
+        const spawnStoneWallBtn = document.getElementById('spawn-stone-wall-btn');
+        const spawnBarbedWireBtn = document.getElementById('spawn-barbed-wire-btn');
+        const spawnArcherTowerBtn = document.getElementById('spawn-archer-tower-btn');
+
+        const restartBtn = document.getElementById('restart-btn');
+        const enemyCountSpan = document.getElementById('enemy-count');
+        const playerCountSpan = document.getElementById('player-count');
+        const playerDroidCounter = document.getElementById('player-droid-counter');
+        const playerDroidCountSpan = document.getElementById('player-droid-count');
+        const energyCountSpan = document.getElementById('energy-count');
+        const waveCountSpan = document.getElementById('wave-count');
+        const objectiveHealthDisplay = document.getElementById('objective-health-display');
+        const objectiveHealthSpan = document.getElementById('objective-health');
+        const campaignBtn = document.getElementById('campaign-btn');
+        const redeemCodeBtn = document.getElementById('redeem-code-btn');
+        
+        const commandInput = document.getElementById('command-input');
+        const runCommandBtn = document.getElementById('run-command-btn');
+        const devMessageEl = document.getElementById('dev-message');
+        const overlay = document.getElementById('overlay');
+        const overlayText = document.getElementById('overlay-text');
+
+        const gameEndModal = document.getElementById('game-end-modal');
+        const gameEndTitle = document.getElementById('game-end-title');
+        const gameEndMessage = document.getElementById('game-end-message');
+        const restartGameEndBtn = document.getElementById('restart-game-end-btn');
+
+        // Game State
+        let playerBlobs = [];
+        let enemyBlobs = [];
+        let gameRunning = true;
+        let animationFrameId;
+        let projectiles = [];
+        let activeBeams = [];
+        let explosions = [];
+        let playerDroids = [];
+        let defenses = [];
+        let currentWave = 0;
+        let enemiesToSpawn = 0;
+        let isSpawning = false;
+        
+        let commandsUnlocked = false;
+        let isTimeFrozen = false;
+        let isCutsceneActive = false;
+        let cutsceneState = {};
+        let isDroidUnlocked = false;
+        let placingDefenseType = null;
+        
+        const ENERGY_RATE = 1;
+        const TOTAL_WAVES = 10;
+        const DROID_LIMIT = 100;
+        const DROID_COST = 5;
+
+        // --- Game Constants ---
+        
+        // Radii
+        const BLOB_RADIUS = 10;
+        const OGRE_RADIUS = 20;
+        const KNIGHT_RADIUS = 12;
+        const ANT_RADIUS = 6;
+        const CYBORG_RADIUS = 25;
+        const DROID_RADIUS = 5;
+        const PALADIN_RADIUS = 14;
+        const ROGUE_RADIUS = 9;
+        const CROSSBOWMAN_RADIUS = 10;
+
+        // Attack Ranges
+        const MELEE_ATTACK_RANGE = 40;
+        const ARCHER_ATTACK_RANGE = 300;
+        const CROSSBOWMAN_ATTACK_RANGE = 350;
+        const MAGE_ATTACK_RANGE = 400;
+
+        // Speeds
+        const BLOB_SPEED = 0.5;
+        const BOMBER_SPEED = 1;
+        const OGRE_SPEED = 0.2;
+        const KNIGHT_SPEED = 0.3;
+        const ANT_SPEED = 0.7;
+        const PALADIN_SPEED = 0.25;
+        const ROGUE_SPEED = 0.8;
+        const CROSSBOWMAN_SPEED = 0.4;
+
+        // Health
+        const BASE_HEALTH = 50;
+        const OGRE_HEALTH = 300;
+        const KNIGHT_HEALTH = 225;
+        const ANT_HEALTH = 25;
+        const PALADIN_HEALTH = 300;
+        const ROGUE_HEALTH = 40;
+        const CROSSBOWMAN_HEALTH = 60;
+        const MAGE_HEALTH = 75;
+        const ARCHER_HEALTH = 20;
+        const HEAVY_MELEE_HEALTH = 150;
+        const HELMET_HEALTH_MULTIPLIER = 2;
+        
+        // Damage
+        const MELEE_ATTACK_DAMAGE = 10;
+        const ARCHER_ATTACK_DAMAGE = 40;
+        const CROSSBOWMAN_ATTACK_DAMAGE = 60;
+        const HEAVY_MELEE_ATTACK_DAMAGE = 25;
+        const MAGE_FIREBALL_DAMAGE = 65;
+        const BOMBER_EXPLOSION_DAMAGE = 60;
+        const OGRE_CLUB_DAMAGE = 75;
+        const KNIGHT_ATTACK_DAMAGE = 20;
+        const ANT_ATTACK_DAMAGE = 12;
+        const PALADIN_ATTACK_DAMAGE = 25;
+        const ROGUE_ATTACK_DAMAGE = 15;
+        const SPEAR_DAMAGE = 30;
+        const CYBORG_PUNCH_DAMAGE = 50;
+        const CYBORG_SWORD_AOE_RADIUS = 60;
+        const CYBORG_BEAM_DAMAGE = 2; // Per frame
+        const DROID_BULLET_DAMAGE = 40;
+        
+        // Costs
+        const BLOB_COST = 10;
+        const MAGE_COST = 50;
+        const KNIGHT_COST = 40;
+        const ANT_COST = 8;
+        const PALADIN_COST = 60;
+        const ROGUE_COST = 25;
+        const CROSSBOWMAN_COST = 35;
+
+        const enemyCosts = {
+            normal: BLOB_COST,
+            ant: ANT_COST,
+            rogue: ROGUE_COST,
+            crossbowman: CROSSBOWMAN_COST,
+            knight: KNIGHT_COST,
+            mage: MAGE_COST,
+            paladin: PALADIN_COST,
+            'heavy-melee': 40,
+            archer: 30,
+            ogre: 80
+        };
+        
+        const SHIELD_DAMAGE_REDUCTION = 0.9;
+        const SHIELD_SPAWN_RATE = 0.4;
+        const HELMET_SPAWN_RATE = 0.4;
+        
+        // Cooldowns
+        const MELEE_ATTACK_COOLDOWN = 1000;
+        const ARCHER_ATTACK_COOLDOWN = 5000;
+        const CROSSBOWMAN_ATTACK_COOLDOWN = 4000;
+        const MAGE_ATTACK_COOLDOWN = 5000;
+        const KNIGHT_ATTACK_COOLDOWN = 2500;
+        const ANT_ATTACK_COOLDOWN = 800;
+        const PALADIN_ATTACK_COOLDOWN = 2000;
+        const ROGUE_ATTACK_COOLDOWN = 500;
+        const CYBORG_PUNCH_COOLDOWN = 800;
+        const CYBORG_SWORD_COOLDOWN = 2000;
+        const CYBORG_BEAM_COOLDOWN = 6000;
+        const CYBORG_DROID_COOLDOWN = 10000;
+        const DROID_ATTACK_COOLDOWN = 5000;
+        
+        const HEAVY_MELEE_SPAWN_RATE = 0.15;
+        
+        const validUnitTypes = ['normal', 'mage', 'bomber', 'archer', 'heavy-melee', 'spear', 'ogre', 'warlock', 'knight', 'ant', 'cyborg', 'droid', 'paladin', 'rogue', 'crossbowman'];
+        const unlockCode = "6034";
+        
+        // Map-specific variables
+        let currentMapData = {};
+        let rocks = [];
+        let geysers = [];
+        let healingCrystals = [];
+        let asteroids = [];
+        let corruptionPuddles = [];
+        let vines = [];
+        let sandstorm = { active: false, timer: 0, direction: 1, duration: 0 };
+        const GEYSER_DAMAGE = 50;
+        const HEALING_PULSE_AMOUNT = 10;
+        const CORRUPTION_DAMAGE = 0.1;
+        const VINE_STUN_DURATION = 1000;
+        
+        let energyTimer;
+
+        const maps = {
+            greenPlains: { name: "Green Plains", desc: "A classic, balanced battlefield.", difficulty: "Easy" },
+            rockyWorld: { name: "Rocky World", desc: "Obstacles provide cover.", difficulty: "Easy" },
+            crystallineCaves: { name: "Crystalline Caves", desc: "Crystals pulse with healing energy.", difficulty: "Normal" },
+            shiftingSands: { name: "Shifting Sands", desc: "Sandstorms push all units.", difficulty: "Normal" },
+            astralVoid: { name: "Astral Void", desc: "Low gravity increases speed.", difficulty: "Normal" },
+            whisperingJungle: { name: "Whispering Jungle", desc: "Swinging vines can stun units.", difficulty: "Hard" },
+            glacialIcelands: { name: "Glacial Icelands", desc: "Slippery ice and crystals.", difficulty: "Hard" },
+            volcanicValley: { name: "Volcanic Valley", desc: "Lava geysers erupt randomly.", difficulty: "Nightmare" },
+            corruptedLands: { name: "Corrupted Lands", desc: "Pools damage players and heal enemies.", difficulty: "Nightmare" }
+        };
+
+        const waveConfigs = {
+            Easy: [
+                { normal: 5 }, { normal: 8, ant: 3 }, { normal: 10, 'heavy-melee': 1 },
+                { normal: 12, ant: 5, archer: 1 }, { 'heavy-melee': 3, ant: 10 }, { normal: 15, archer: 3 },
+                { 'heavy-melee': 5, archer: 2, ant: 8 }, { ogre: 1, normal: 5 }, { ogre: 1, 'heavy-melee': 4, archer: 3 },
+                { ogre: 2, normal: 10, ant: 10 }
+            ],
+            Normal: [
+                { normal: 8 }, { normal: 10, ant: 5 }, { normal: 10, 'heavy-melee': 2, ant: 5 },
+                { 'heavy-melee': 4, archer: 2 }, { ogre: 1, normal: 8 }, { 'heavy-melee': 6, ant: 12, archer: 3 },
+                { ogre: 1, 'heavy-melee': 3, archer: 3 }, { ogre: 2, ant: 10 }, { ogre: 2, 'heavy-melee': 5, archer: 4 },
+                { ogre: 3, 'heavy-melee': 5, normal: 10 }
+            ],
+            Hard: [
+                { normal: 10, ant: 3 }, { 'heavy-melee': 3, normal: 8 }, { ogre: 1, ant: 8 },
+                { 'heavy-melee': 5, archer: 4 }, { ogre: 1, normal: 15, archer: 3 }, { ogre: 2, 'heavy-melee': 4 },
+                { 'heavy-melee': 10, archer: 6 }, { ogre: 3, ant: 15 }, { ogre: 2, 'heavy-melee': 8, archer: 5 },
+                { ogre: 4, 'heavy-melee': 5 }
+            ],
+            Nightmare: [
+                { 'heavy-melee': 5, normal: 5 }, { ogre: 1, normal: 10 }, { ogre: 1, 'heavy-melee': 4, ant: 8 },
+                { ogre: 2, archer: 5 }, { 'heavy-melee': 12, archer: 6 }, { ogre: 3, normal: 10 },
+                { ogre: 2, 'heavy-melee': 8, archer: 5 }, { ogre: 4, ant: 20 }, { ogre: 3, 'heavy-melee': 10, archer: 8 },
+                { ogre: 5, 'heavy-melee': 10 }
+            ]
+        };
+
+        function lerp(a, b, t) { return a + (b - a) * t; }
+
+        // --- MAP & BACKGROUND ---
+        function drawBackground() {
+            switch(currentMapData.id) {
+                case 'greenPlains': ctx.fillStyle = '#1f4f1f'; break;
+                case 'rockyWorld': ctx.fillStyle = '#30363d'; break;
+                case 'glacialIcelands': ctx.fillStyle = '#a4d8f0'; break;
+                case 'volcanicValley': ctx.fillStyle = '#4a1d1d'; break;
+                case 'crystallineCaves': ctx.fillStyle = '#1e1b2e'; break;
+                case 'shiftingSands': ctx.fillStyle = '#d2b48c'; break;
+                case 'astralVoid': ctx.fillStyle = '#0c0a18'; break;
+                case 'whisperingJungle': ctx.fillStyle = '#143d2d'; break;
+                case 'corruptedLands': ctx.fillStyle = '#42324f'; break;
+            }
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            if (['rockyWorld', 'glacialIcelands'].includes(currentMapData.id)) { rocks.forEach(rock => { ctx.fillStyle = rock.color; ctx.beginPath(); ctx.moveTo(rock.x + rock.points[0].x, rock.y + rock.points[0].y); for(let i = 1; i < rock.points.length; i++) ctx.lineTo(rock.x + rock.points[i].x, rock.y + rock.points[i].y); ctx.closePath(); ctx.fill(); }); }
+            if (currentMapData.id === 'volcanicValley') geysers.forEach(drawGeyser);
+            if (currentMapData.id === 'crystallineCaves') healingCrystals.forEach(drawHealingCrystal);
+            if (currentMapData.id === 'astralVoid') asteroids.forEach(drawAsteroid);
+            if (currentMapData.id === 'whisperingJungle') vines.forEach(drawVine);
+            if (currentMapData.id === 'corruptedLands') corruptionPuddles.forEach(drawCorruptionPuddle);
+        }
+        function setupMap() {
+            rocks = []; geysers = []; healingCrystals = []; asteroids = []; vines = []; corruptionPuddles = [];
+            sandstorm = { active: false, timer: 0, direction: 1, duration: 0 };
+            switch(currentMapData.id) {
+                case 'rockyWorld': generateRocks('rock'); break;
+                case 'glacialIcelands': generateRocks('crystal'); break;
+                case 'volcanicValley': generateGeysers(); break;
+                case 'crystallineCaves': generateHealingCrystals(); break;
+                case 'shiftingSands': sandstorm.timer = Math.random() * 5000 + 3000; break;
+                case 'astralVoid': generateAsteroids(); break;
+                case 'whisperingJungle': generateVines(); break;
+                case 'corruptedLands': generateCorruptionPuddles(); break;
+            }
+        }
+        function generateRocks(type){const n=Math.floor(Math.random()*15)+10;for(let i=0;i<n;i++){const x=Math.random()*canvas.width,y=Math.random()*canvas.height,r=Math.random()*20+8,p=[];const np=Math.floor(Math.random()*5)+5;for(let j=0;j<np;j++){const a=(j/np)*Math.PI*2,R=r*(.8+Math.random()*.4);p.push({x:Math.cos(a)*R,y:Math.sin(a)*R});}let c;c=type==='rock'?['#5f6c77','#4a5568','#718096'][Math.floor(Math.random()*3)]:['#dbe4f0','#b0c4de','#c0d0e8'][Math.floor(Math.random()*3)];rocks.push({x,y,points:p,color:c});}}
+        function generateGeysers(){for(let i=0;i<Math.floor(Math.random()*3)+3;i++)geysers.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,radius:20,timer:Math.random()*5e3+2e3,state:'idle',duration:0});}
+        function updateGeysers(){geysers.forEach(g=>{g.timer-=16.67;if(g.timer<=0&&g.state==='idle'){g.state='warning';g.duration=2e3;}else if(g.state==='warning'){g.duration-=16.67;if(g.duration<=0){g.state='erupting';g.duration=1e3;[...playerBlobs,...enemyBlobs,...playerDroids].forEach(b=>{if(Math.hypot(b.x-g.x,b.y-g.y)<g.radius*3)b.health-=GEYSER_DAMAGE;});}}else if(g.state==='erupting'){g.duration-=16.67;if(g.duration<=0){g.state='idle';g.timer=Math.random()*8e3+5e3;}}});}
+        function drawGeyser(g){ctx.fillStyle='#2b1a1a';ctx.beginPath();ctx.arc(g.x,g.y,g.radius,0,Math.PI*2);ctx.fill();if(g.state==='warning'){const r=g.radius*3*(1-g.duration/2e3);ctx.strokeStyle='rgba(255,165,0,.7)';ctx.lineWidth=3;ctx.beginPath();ctx.arc(g.x,g.y,r,0,Math.PI*2);ctx.stroke();}else if(g.state==='erupting'){const r=g.radius*3*(g.duration/1e3);ctx.fillStyle=`rgba(255,69,0,${.8*(g.duration/1e3)})`;ctx.beginPath();ctx.arc(g.x,g.y,r,0,Math.PI*2);ctx.fill();}}
+        function generateHealingCrystals(){for(let i=0;i<Math.floor(Math.random()*2)+2;i++)healingCrystals.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,radius:15,timer:Math.random()*4e3+3e3,duration:0});}
+        function updateHealingCrystals(){healingCrystals.forEach(c=>{c.timer-=16.67;if(c.timer<=0){let C=null,m=Infinity;[...playerBlobs,...enemyBlobs,...playerDroids].forEach(b=>{if(b.health<b.maxHealth){const d=Math.hypot(b.x-c.x,b.y-c.y);if(d<m){m=d;C=b;}}});if(C)C.health=Math.min(C.maxHealth,C.health+HEALING_PULSE_AMOUNT);c.duration=1e3;c.timer=Math.random()*6e3+4e3;}if(c.duration>0)c.duration-=16.67;});}
+        function drawHealingCrystal(c){const p=c.duration>0?Math.sin((1-c.duration/1e3)*Math.PI):0;ctx.fillStyle=`rgba(173,216,230,${.5+p*.5})`;ctx.shadowColor='lightblue';ctx.shadowBlur=15+p*10;ctx.beginPath();ctx.arc(c.x,c.y,c.radius,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;}
+        function updateSandstorm(){sandstorm.timer-=16.67;if(sandstorm.timer<=0&&!sandstorm.active){sandstorm.active=true;sandstorm.duration=Math.random()*2e3+2e3;sandstorm.direction=Math.random()<.5?1:-1;}if(sandstorm.active){sandstorm.duration-=16.67;const f=.5*sandstorm.direction;[...playerBlobs,...enemyBlobs,...playerDroids].forEach(b=>b.x+=f);if(sandstorm.duration<=0){sandstorm.active=false;sandstorm.timer=Math.random()*8e3+8e3;}}}
+        function generateAsteroids(){for(let i=0;i<15;i++)asteroids.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,radius:Math.random()*10+5,vx:(Math.random()-.5)*.5,vy:(Math.random()-.5)*.5,color:'#5f6c77'});}
+        function updateAsteroids(){asteroids.forEach(a=>{a.x+=a.vx;a.y+=a.vy;if(a.x<-a.radius)a.x=canvas.width+a.radius;if(a.x>canvas.width+a.radius)a.x=-a.radius;if(a.y<-a.radius)a.y=canvas.height+a.radius;if(a.y>canvas.height+a.radius)a.y=-a.radius;});}
+        function drawAsteroid(a){ctx.fillStyle=a.color;ctx.beginPath();ctx.arc(a.x,a.y,a.radius,0,Math.PI*2);ctx.fill();}
+        function generateVines(){for(let i=0;i<Math.floor(Math.random()*2)+2;i++)vines.push({x:Math.random()*canvas.width*.6+canvas.width*.2,length:canvas.height*1.2,angle:0,speed:(Math.random()-.5)*.01+.005,timer:Math.random()*7e3+4e3});}
+        function updateVines(){vines.forEach(v=>{v.timer-=16.67;if(v.timer<=0){v.angle+=v.speed;if(Math.abs(v.angle)>Math.PI/8){v.speed*=-1;if(Math.abs(v.angle)>Math.PI/7){v.angle=0;v.timer=Math.random()*7e3+4e3;}}const eX=v.x+Math.sin(v.angle)*v.length,eY=Math.cos(v.angle)*v.length;[...playerBlobs,...enemyBlobs,...playerDroids].forEach(b=>{const d=Math.abs(eY*b.x-(eX-v.x)*b.y+eX*0-eY*v.x)/Math.hypot(eY,eX-v.x);if(d<b.radius+5&&!b.isStunned){b.isStunned=true;b.stunTimer=VINE_STUN_DURATION;}});}});}
+        function drawVine(v){if(v.timer>0)return;ctx.strokeStyle='#2f6b4a';ctx.lineWidth=10;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(v.x,0);const eX=v.x+Math.sin(v.angle)*v.length,eY=Math.cos(v.angle)*v.length;ctx.lineTo(eX,eY);ctx.stroke();}
+        function generateCorruptionPuddles(){for(let i=0;i<Math.floor(Math.random()*3)+2;i++)corruptionPuddles.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,radius:Math.random()*40+30});}
+        function updateCorruption(){corruptionPuddles.forEach(p=>{[...playerBlobs,...playerDroids].forEach(b=>{if(Math.hypot(b.x-p.x,b.y-p.y)<p.radius)b.health-=CORRUPTION_DAMAGE;});enemyBlobs.forEach(b=>{if(Math.hypot(b.x-p.x,b.y-p.y)<p.radius)b.health=Math.min(b.maxHealth,b.health+CORRUPTION_DAMAGE);});});}
+        function drawCorruptionPuddle(p){ctx.fillStyle='rgba(138,43,226,0.3)';ctx.beginPath();ctx.arc(p.x,p.y,p.radius,0,Math.PI*2);ctx.fill();}
+
+        // --- UNITS ---
+        function Blob(x,y,t,u='normal'){this.x=x;this.y=y;this.type=t;this.unitType=u;this.isMage=u==='mage';this.isBomber=u==='bomber';this.isArcher=u==='archer';this.isHeavyMelee=u==='heavy-melee';this.isSpear=u==='spear';this.isOgre=u==='ogre';this.isWarlock=u==='warlock';this.isKnight=u==='knight';this.isAnt=u==='ant';this.isCyborg=u==='cyborg';this.isPaladin=u==='paladin';this.isRogue=u==='rogue';this.isCrossbowman=u==='crossbowman';this.radius=BLOB_RADIUS;if(this.isOgre)this.radius=OGRE_RADIUS;if(this.isKnight)this.radius=KNIGHT_RADIUS;if(this.isAnt)this.radius=ANT_RADIUS;if(this.isCyborg)this.radius=CYBORG_RADIUS;if(this.isPaladin)this.radius=PALADIN_RADIUS;if(this.isRogue)this.radius=ROGUE_RADIUS;if(this.isCrossbowman)this.radius=CROSSBOWMAN_RADIUS;this.color=t==='player'?'#58a6ff':'#e34234';if(this.isCyborg)this.color='#30363d';this.hasShield=u==='normal'?Math.random()<SHIELD_SPAWN_RATE:false;this.hasHelmet=(u==='normal'||this.isKnight)?Math.random()<HELMET_SPAWN_RATE:false;this.maxHealth=BASE_HEALTH;if(this.hasHelmet)this.maxHealth*=HELMET_HEALTH_MULTIPLIER;if(this.isMage)this.maxHealth=MAGE_HEALTH;if(this.isArcher)this.maxHealth=ARCHER_HEALTH;if(this.isHeavyMelee)this.maxHealth=HEAVY_MELEE_HEALTH;if(this.isOgre)this.maxHealth=OGRE_HEALTH;if(this.isKnight)this.maxHealth=KNIGHT_HEALTH;if(this.isAnt)this.maxHealth=ANT_HEALTH;if(this.isCyborg)this.maxHealth=3000;if(this.isPaladin)this.maxHealth=PALADIN_HEALTH;if(this.isRogue)this.maxHealth=ROGUE_HEALTH;if(this.isCrossbowman)this.maxHealth=CROSSBOWMAN_HEALTH;this.health=this.maxHealth;this.attackDamage=MELEE_ATTACK_DAMAGE;this.attackCooldown=MELEE_ATTACK_COOLDOWN;this.attackRange=MELEE_ATTACK_RANGE;this.originalSpeed=BLOB_SPEED;if(this.isBomber)this.originalSpeed=BOMBER_SPEED;if(this.isOgre){this.attackDamage=OGRE_CLUB_DAMAGE;this.originalSpeed=OGRE_SPEED;}if(this.isKnight){this.attackDamage=KNIGHT_ATTACK_DAMAGE;this.attackCooldown=KNIGHT_ATTACK_COOLDOWN;this.originalSpeed=KNIGHT_SPEED;}if(this.isAnt){this.attackDamage=ANT_ATTACK_DAMAGE;this.attackCooldown=ANT_ATTACK_COOLDOWN;this.originalSpeed=ANT_SPEED;}if(this.isPaladin){this.attackDamage=PALADIN_ATTACK_DAMAGE;this.attackCooldown=PALADIN_ATTACK_COOLDOWN;this.originalSpeed=PALADIN_SPEED;}if(this.isRogue){this.attackDamage=ROGUE_ATTACK_DAMAGE;this.attackCooldown=ROGUE_ATTACK_COOLDOWN;this.originalSpeed=ROGUE_SPEED;}if(this.isCrossbowman){this.attackDamage=CROSSBOWMAN_ATTACK_DAMAGE;this.attackCooldown=CROSSBOWMAN_ATTACK_COOLDOWN;this.attackRange=CROSSBOWMAN_ATTACK_RANGE;this.originalSpeed=CROSSBOWMAN_SPEED;}if(this.isMage){this.attackDamage=MAGE_FIREBALL_DAMAGE;this.attackCooldown=MAGE_ATTACK_COOLDOWN;this.attackRange=MAGE_ATTACK_RANGE;}if(this.isArcher){this.attackDamage=ARCHER_ATTACK_DAMAGE;this.attackCooldown=ARCHER_ATTACK_COOLDOWN;this.attackRange=ARCHER_ATTACK_RANGE;}if(this.isCyborg){this.originalSpeed=.2;this.attackRange=MELEE_ATTACK_RANGE+20;}this.target=null;this.isAttacking=false;this.lastAttackTime=0;this.debuffedAt=0;this.debuffDuration=0;this.isSlipping=false;this.slipTimer=0;this.slipVx=0;this.slipVy=0;this.isStunned=false;this.stunTimer=0;this.lastArm1Attack=0;this.lastArm2Attack=0;this.lastArm3Attack=0;this.lastArm4Attack=0;}
+        function Droid(x,y){this.x=x;this.y=y;this.type='player';this.radius=DROID_RADIUS;this.health=50;this.maxHealth=50;this.speed=1.5;this.target=null;this.attackRange=ARCHER_ATTACK_RANGE;this.lastAttackTime=0;this.isStunned=false;this.stunTimer=0;}
+        function Explosion(x,y,r,d){this.x=x;this.y=y;this.radius=r;this.maxDuration=d;this.currentDuration=d;}
+        function Projectile(x,y,t,d,c,type){this.x=x;this.y=y;this.target=t;this.damage=d;this.color=c;this.type=type;this.speed=5;if(type==='fireball')this.speed=3;if(type==='curse-bolt')this.speed=1.5;this.radius=3;if(type==='fireball')this.radius=8;if(type==='curse-bolt'||type==='droid-bullet')this.radius=4;this.angle=Math.atan2(t.y-y,t.x-x);if(type==='crossbow-bolt'){this.hitEnemies=[];this.pierceCount=1;}}
+        
+        // --- DRAWING ---
+        function drawBlob(b){ctx.save();ctx.translate(b.x,b.y);ctx.scale(b.type==='player'?1:-1,1);if(b.isCyborg){ctx.fillStyle=b.color;ctx.beginPath();ctx.arc(0,0,b.radius,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#4a5568';ctx.lineWidth=1;ctx.beginPath();ctx.arc(0,0,b.radius-3,Math.PI*1.2,Math.PI*1.8);ctx.stroke();ctx.beginPath();ctx.arc(0,0,b.radius-3,Math.PI*.2,Math.PI*.8);ctx.stroke();ctx.fillStyle='#161b22';ctx.beginPath();ctx.arc(8,-5,8,0,Math.PI*2);ctx.fill();ctx.fillStyle='#f85149';ctx.beginPath();ctx.arc(8,-5,5,0,Math.PI*2);ctx.fill();ctx.fillStyle='rgba(255,255,255,0.3)';ctx.beginPath();ctx.arc(10,-7,1.5,0,Math.PI*2);ctx.fill();ctx.save();ctx.translate(15,15);ctx.rotate(Math.PI/8);ctx.fillStyle='#4a5568';ctx.fillRect(-5,-5,25,10);ctx.fillStyle='#30363d';ctx.fillRect(20,-3,10,6);const C=Math.min(1,(Date.now()-b.lastArm2Attack)/CYBORG_BEAM_COOLDOWN);ctx.fillStyle=`rgba(255,0,0,${C*.8})`;ctx.beginPath();ctx.arc(32,0,4*C,0,Math.PI*2);ctx.fill();ctx.restore();ctx.save();ctx.translate(-15,15);ctx.fillStyle='#30363d';ctx.beginPath();ctx.rect(-15,-8,20,16);ctx.fill();ctx.strokeStyle='#4a5568';ctx.lineWidth=2;ctx.strokeRect(-15,-8,20,16);const p=Math.min(1,(Date.now()-b.lastArm4Attack)/CYBORG_DROID_COOLDOWN);if(p>.9){ctx.fillStyle='#34d058';ctx.fillRect(-13,-2,16,4);}ctx.restore();const P=Math.min(1,(Date.now()-b.lastArm1Attack)/CYBORG_PUNCH_COOLDOWN);let E=0;if(P<.2)E=lerp(0,15,P/.2);else if(P<.5)E=lerp(15,0,(P-.2)/.3);ctx.save();ctx.translate(15,-15);ctx.rotate(-Math.PI/6);ctx.fillStyle='#4a5568';ctx.beginPath();ctx.arc(0,0,8,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#6c757d';ctx.lineWidth=6;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(20+E,0);ctx.stroke();ctx.fillStyle='#30363d';ctx.beginPath();ctx.arc(25+E,0,9,0,Math.PI*2);ctx.fill();ctx.restore();const S=Math.min(1,(Date.now()-b.lastArm3Attack)/CYBORG_SWORD_COOLDOWN);let A=-Math.PI/1.5;if(S<.3)A=lerp(-Math.PI/1.5,Math.PI/4,S/.3);else if(S<.6)A=lerp(Math.PI/4,-Math.PI/1.5,(S-.3)/.3);if(S>0&&S<.6){ctx.save();const a=Math.sin(S/.6*Math.PI);ctx.globalAlpha=lerp(0,.6,a);ctx.fillStyle='#f85149';ctx.beginPath();ctx.arc(0,0,CYBORG_SWORD_AOE_RADIUS,-Math.PI*.75,Math.PI*.75);ctx.lineTo(0,0);ctx.closePath();ctx.fill();ctx.restore();}ctx.save();ctx.translate(-15,-15);ctx.rotate(A);ctx.fillStyle='#4a5568';ctx.fillRect(0,-4,15,8);ctx.fillStyle='#30363d';ctx.fillRect(5,-8,5,16);ctx.fillStyle='#f85149';ctx.shadowColor='#f85149';ctx.shadowBlur=10;ctx.beginPath();ctx.moveTo(15,-2.5);ctx.lineTo(55,-2.5);ctx.lineTo(60,0);ctx.lineTo(55,2.5);ctx.lineTo(15,2.5);ctx.closePath();ctx.fill();ctx.shadowBlur=0;ctx.restore();}else{ctx.fillStyle=b.color;ctx.beginPath();ctx.ellipse(0,0,b.radius,b.radius*1.1,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='rgba(0,0,0,0.15)';ctx.beginPath();ctx.ellipse(0,b.radius*.5,b.radius*.8,b.radius*.3,0,0,Math.PI*2);ctx.fill();const s=b.radius*.4,y=-b.radius*.2;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(-s,y,b.radius*.15,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(s,y,b.radius*.15,0,Math.PI*2);ctx.fill();ctx.fillStyle='#000';ctx.beginPath();ctx.arc(-s,y,b.radius*.07,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(s,y,b.radius*.07,0,Math.PI*2);ctx.fill();if(b.isMage){ctx.strokeStyle='#8B4513';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(7,7);ctx.lineTo(15,-15);ctx.stroke();const g=Math.sin(Date.now()/300)*2+3;ctx.fillStyle='#805ad5';ctx.shadowColor='#805ad5';ctx.shadowBlur=10;ctx.beginPath();ctx.arc(15,-15,g,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;}else if(b.isKnight){ctx.fillStyle='#c9d1d9';ctx.beginPath();ctx.moveTo(-10,-5);ctx.lineTo(0,-15);ctx.lineTo(10,-5);ctx.lineTo(0,-8);ctx.closePath();ctx.fill();ctx.fillStyle=b.type==='player'?'#58a6ff':'#e34234';ctx.beginPath();ctx.moveTo(0,-15);ctx.lineTo(-2,-22);ctx.lineTo(2,-22);ctx.closePath();ctx.fill();let a=0;const t=Date.now()-b.lastAttackTime;if(t<KNIGHT_ATTACK_COOLDOWN)a=lerp(0,Math.PI,Math.sin(t/KNIGHT_ATTACK_COOLDOWN*Math.PI));ctx.save();ctx.rotate(a);ctx.fillStyle='#c9d1d9';ctx.fillRect(3,-3,6,6);ctx.fillStyle='#a6c9d1';ctx.fillRect(9,-2,25,4);ctx.restore();}else if(b.isPaladin){ctx.fillStyle='#e1e1e1';ctx.fillRect(-12,-15,24,8);ctx.fillRect(-5,-7,10,8);ctx.fillStyle=b.color;ctx.fillRect(-10,-14,20,2);let a=0;const t=Date.now()-b.lastAttackTime;if(t<PALADIN_ATTACK_COOLDOWN)a=Math.sin(t/PALADIN_ATTACK_COOLDOWN*Math.PI)*.8;ctx.save();ctx.rotate(a);ctx.fillStyle='#a6c9d1';ctx.fillRect(8,-2,18,4);ctx.fillStyle='#c9d1d9';ctx.fillRect(26,-6,10,12);ctx.restore();}else if(b.isRogue){ctx.fillStyle='#30363d';ctx.beginPath();ctx.moveTo(0,-5);ctx.lineTo(-10,-2);ctx.lineTo(-5,-12);ctx.lineTo(5,-12);ctx.lineTo(10,-2);ctx.closePath();ctx.fill();let a=Math.sin(Date.now()/100)*.2-.2;ctx.save();ctx.rotate(a);ctx.fillStyle='#a6c9d1';ctx.fillRect(8,-1,15,2);ctx.restore();ctx.save();ctx.scale(-1,1);ctx.rotate(a);ctx.fillStyle='#a6c9d1';ctx.fillRect(8,-1,15,2);ctx.restore();}else if(b.isCrossbowman){ctx.fillStyle='#30363d';ctx.beginPath();ctx.arc(0,-8,8,Math.PI,0);ctx.fill();ctx.strokeStyle='#8B4513';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(5,0);ctx.lineTo(25,0);ctx.stroke();ctx.strokeStyle='#c9d1d9';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(15,-5);ctx.lineTo(15,5);ctx.stroke();}else if(b.isAnt){let baseColor = b.type === 'player' ? '#58a6ff' : '#e34234'; ctx.fillStyle=baseColor; ctx.beginPath();ctx.arc(-b.radius,0,b.radius*.9,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(b.radius*.8,0,b.radius*1.1,0,Math.PI*2);ctx.fill();}else if(b.isOgre){ctx.fillStyle='#8B4513';ctx.beginPath();ctx.rect(10,-5,40,10);ctx.fill();}else{if(b.hasHelmet){ctx.fillStyle='#A9A9A9';ctx.beginPath();ctx.arc(0,-b.radius*.8,7,Math.PI,0);ctx.fill();}let a=0;const t=Date.now()-b.lastAttackTime;if(t<MELEE_ATTACK_COOLDOWN)a=Math.sin(t/MELEE_ATTACK_COOLDOWN*Math.PI);ctx.save();ctx.rotate(a);ctx.fillStyle='#c9d1d9';ctx.fillRect(3,-2,5,4);ctx.fillStyle='#a6c9d1';ctx.fillRect(8,-1,15,2);ctx.restore();if(b.hasShield){ctx.fillStyle='#a6c9d1';ctx.beginPath();ctx.arc(-8,0,6,0,Math.PI*2);ctx.fill();}}}ctx.restore();const hW=15,hH=3,hP=b.health/b.maxHealth;ctx.fillStyle='#30363d';ctx.fillRect(b.x-hW/2,b.y-b.radius-8,hW,hH);ctx.fillStyle=hP>.5?'#34d058':hP>.2?'#d29922':'#f85149';ctx.fillRect(b.x-hW/2,b.y-b.radius-8,hW*hP,hH);if(b.isStunned){ctx.fillStyle='rgba(255,255,0,0.5)';ctx.beginPath();ctx.arc(b.x,b.y,b.radius+4,0,Math.PI*2);ctx.fill();}else if(b.debuffedAt>0&&Date.now()<b.debuffedAt+b.debuffDuration){ctx.fillStyle='rgba(102,51,153,0.5)';ctx.beginPath();ctx.arc(b.x,b.y,b.radius+3,0,Math.PI*2);ctx.fill();}}
+        function drawDroid(d){ctx.fillStyle='#4a5568';ctx.beginPath();ctx.arc(d.x,d.y,d.radius,0,Math.PI*2);ctx.fill();ctx.fillStyle='#f85149';ctx.beginPath();ctx.arc(d.x+2,d.y,2,0,Math.PI*2);ctx.fill();const hW=10,hH=2,hP=d.health/d.maxHealth;ctx.fillStyle='#30363d';ctx.fillRect(d.x-hW/2,d.y-d.radius-4,hW,hH);ctx.fillStyle='#34d058';ctx.fillRect(d.x-hW/2,d.y-d.radius-4,hW*hP,hH);if(d.isStunned){ctx.fillStyle='rgba(255,255,0,0.5)';ctx.beginPath();ctx.arc(d.x,d.y,d.radius+4,0,Math.PI*2);ctx.fill();}}
+        function drawExplosion(e){const a=e.currentDuration/e.maxDuration;ctx.fillStyle=`rgba(255,69,0,${a})`;ctx.beginPath();ctx.arc(e.x,e.y,e.radius*(1-a),0,Math.PI*2);ctx.fill();}
+        function drawProjectiles(){projectiles.forEach(p=>{ctx.fillStyle=p.type==='fireball'?'#ff4500':p.type==='curse-bolt'?'#663399':p.type==='droid-bullet'?'#f85149':p.type==='crossbow-bolt'?'#966F33':p.color;ctx.beginPath();ctx.arc(p.x,p.y,p.radius,0,Math.PI*2);ctx.fill();});}
+        function drawBeams() { activeBeams.forEach(beam => { ctx.save(); const alpha = beam.duration / 30; ctx.strokeStyle = `rgba(255, 0, 0, ${alpha})`; ctx.lineWidth = beam.width; ctx.beginPath(); ctx.moveTo(beam.x, beam.y); ctx.lineTo(beam.endX, beam.endY); ctx.stroke(); ctx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.8})`; ctx.lineWidth = beam.width / 3; ctx.stroke(); ctx.restore(); }); }
+
+        // --- GAME LOGIC ---
+        function updateProjectiles(){for(let i=projectiles.length-1;i>=0;i--){const p=projectiles[i];p.x+=Math.cos(p.angle)*p.speed;p.y+=Math.sin(p.angle)*p.speed;let targets=p.type==='droid-bullet'?enemyBlobs:[p.target];if(p.type==='crossbow-bolt')targets=enemyBlobs;let hit=false;for(const target of targets){if(!target||(p.hitEnemies&&p.hitEnemies.includes(target)))continue;if(Math.hypot(target.x-p.x,target.y-p.y)<p.radius+target.radius){let d=p.damage;if(target.hasShield)d*=(1-SHIELD_DAMAGE_REDUCTION);target.health-=d;if(p.type==='crossbow-bolt'){p.hitEnemies.push(target);p.pierceCount--;if(p.pierceCount<0)hit=true;}else{hit=true;}if(hit)break;}}if(hit||p.x<0||p.x>canvas.width||p.y<0||p.y>canvas.height)projectiles.splice(i,1);}}
+        function updateExplosions(){for(let i=explosions.length-1;i>=0;i--){explosions[i].currentDuration--;if(explosions[i].currentDuration<=0)explosions.splice(i,1);}}
+        function spawnPlayerBlob(){if(!gameRunning||energy<BLOB_COST)return;energy-=BLOB_COST;playerBlobs.push(new Blob(50,Math.random()*canvas.height,'player','normal'));}
+        function spawnMageBlob(){if(!gameRunning||energy<MAGE_COST)return;energy-=MAGE_COST;playerBlobs.push(new Blob(50,Math.random()*canvas.height,'player','mage'));}
+        function spawnKnightBlob(){if(!gameRunning||energy<KNIGHT_COST)return;energy-=KNIGHT_COST;playerBlobs.push(new Blob(50,Math.random()*canvas.height,'player','knight'));}
+        function spawnAntBlob(){if(!gameRunning||energy<ANT_COST)return;energy-=ANT_COST;playerBlobs.push(new Blob(50,Math.random()*canvas.height,'player','ant'));}
+        function spawnPaladinBlob(){if(!gameRunning||energy<PALADIN_COST)return;energy-=PALADIN_COST;playerBlobs.push(new Blob(50,Math.random()*canvas.height,'player','paladin'));}
+        function spawnRogueBlob(){if(!gameRunning||energy<ROGUE_COST)return;energy-=ROGUE_COST;playerBlobs.push(new Blob(50,Math.random()*canvas.height,'player','rogue'));}
+        function spawnCrossbowmanBlob(){if(!gameRunning||energy<CROSSBOWMAN_COST)return;energy-=CROSSBOWMAN_COST;playerBlobs.push(new Blob(50,Math.random()*canvas.height,'player','crossbowman'));}
+        function spawnPlayerDroid() { if(!gameRunning || energy < DROID_COST || playerDroids.length >= DROID_LIMIT) return; energy -= DROID_COST; playerDroids.push(new Droid(50, Math.random() * canvas.height));}
+        function findNearestTarget(b){const T=b.type==='player'?enemyBlobs:[...playerBlobs,...playerDroids];if(T.length===0)return null;let nT=null,mD=Infinity;for(const t of T){if (!t || t.health <= 0) continue; const d=Math.hypot(t.x-b.x,t.y-b.y);if(d<mD){mD=d;nT=t;}}return nT;}
+
+        function updateBlobs() {
+            const currentTime = Date.now();
+            [playerBlobs, enemyBlobs].forEach((blobList) => {
+                for (let i = blobList.length - 1; i >= 0; i--) {
+                    const blob = blobList[i];
+                    if (!gameRunning || !blob) continue;
+
+                    if (blob.isStunned) { blob.stunTimer -= 1000 / 60; if (blob.stunTimer <= 0) blob.isStunned = false; continue; }
+                    
+                    let actualSpeed = blob.originalSpeed;
+                    if (currentMapData.id === 'astralVoid') actualSpeed *= 1.5;
+                    
+                    if (blob.isSlipping) {
+                        blob.x += blob.slipVx;
+                        blob.y += blob.slipVy;
+                        blob.slipTimer--;
+                        if (blob.slipTimer <= 0) blob.isSlipping = false;
+                    } else {
+                        blob.target = findNearestTarget(blob);
+                        if (blob.target) {
+                            const distance = Math.hypot(blob.target.x - blob.x, blob.target.y - blob.y);
+                            if (distance < blob.attackRange) {
+                                if (blob.isBomber) {
+                                    explosions.push(new Explosion(blob.x, blob.y, 80, 30));
+                                    [...playerBlobs, ...enemyBlobs, ...playerDroids].forEach(b => {
+                                        if (Math.hypot(b.x - blob.x, b.y - blob.y) < 80) b.health -= BOMBER_EXPLOSION_DAMAGE;
+                                    });
+                                    blobList.splice(i, 1);
+                                    continue;
+                                }
+                                if (currentTime - blob.lastAttackTime > blob.attackCooldown) {
+                                    if (blob.isMage) {
+                                        projectiles.push(new Projectile(blob.x, blob.y, blob.target, blob.attackDamage, blob.color, 'fireball'));
+                                    } else if (blob.isCrossbowman) {
+                                        projectiles.push(new Projectile(blob.x, blob.y, blob.target, blob.attackDamage, null, 'crossbow-bolt'));
+                                    } else {
+                                        if (blob.isPaladin && blob.health < blob.maxHealth) blob.health = Math.min(blob.maxHealth, blob.health + 5);
+                                        if (blob.isRogue && Math.random() < 0.2) { /* Dodged */ } else { blob.target.health -= blob.attackDamage; }
+                                    }
+                                    blob.lastAttackTime = currentTime;
+                                }
+                            } else {
+                                const angle = Math.atan2(blob.target.y - blob.y, blob.target.x - blob.x);
+                                const vx = Math.cos(angle) * actualSpeed;
+                                const vy = Math.sin(angle) * actualSpeed;
+                                blob.x += vx;
+                                blob.y += vy;
+                                if (currentMapData.id === 'glacialIcelands' && Math.random() < 0.001) {
+                                    blob.isSlipping = true; blob.slipTimer = 30; blob.slipVx = vx * 2; blob.slipVy = vy * 2;
+                                }
+                            }
+                        } else { blob.x += actualSpeed * (blob.type === 'player' ? 1 : -1); }
+                    }
+                    if (blob.isCyborg) {
+                        if (currentTime - blob.lastArm1Attack > CYBORG_PUNCH_COOLDOWN && blob.target && Math.hypot(blob.target.x - blob.x, blob.target.y - blob.y) < blob.attackRange) { blob.target.health -= CYBORG_PUNCH_DAMAGE; blob.lastArm1Attack = currentTime; }
+                        if (currentTime - blob.lastArm3Attack > CYBORG_SWORD_COOLDOWN && blob.target) { 
+                            enemyBlobs.forEach(e => { if (Math.hypot(e.x - blob.x, e.y - blob.y) < CYBORG_SWORD_AOE_RADIUS) e.health = 0; });
+                            blob.lastArm3Attack = currentTime;
+                        }
+                        if (currentTime - blob.lastArm2Attack > CYBORG_BEAM_COOLDOWN && enemyBlobs.length > 0) {
+                            const randomTarget = enemyBlobs[Math.floor(Math.random()*enemyBlobs.length)];
+                            const angle = Math.atan2(randomTarget.y - blob.y, randomTarget.x - blob.x);
+                            activeBeams.push({ x: blob.x, y: blob.y, endX: blob.x + Math.cos(angle) * canvas.width, endY: blob.y + Math.sin(angle) * canvas.width, width: 30, duration: 45, hitEnemies: [] });
+                            blob.lastArm2Attack = currentTime;
+                        }
+                        if (currentTime - blob.lastArm4Attack > CYBORG_DROID_COOLDOWN) {
+                            playerDroids.push(new Droid(blob.x, blob.y));
+                            blob.lastArm4Attack = currentTime;
+                        }
+                    }
+                    blob.x = Math.max(blob.radius, Math.min(canvas.width - blob.radius, blob.x));
+                    blob.y = Math.max(blob.radius, Math.min(canvas.height - blob.radius, blob.y));
+                }
+            });
+        }
+        function updateDroids(){const c=Date.now();for(let i=playerDroids.length-1;i>=0;i--){const d=playerDroids[i];if(d.isStunned){d.stunTimer-=16.67;if(d.stunTimer<=0)d.isStunned=false;continue;}d.target=findNearestTarget(d);if(d.target){const dist=Math.hypot(d.target.x-d.x,d.target.y-d.y);if(dist<d.attackRange){if(c-d.lastAttackTime>DROID_ATTACK_COOLDOWN){projectiles.push(new Projectile(d.x,d.y,d.target,DROID_BULLET_DAMAGE,null,'droid-bullet'));d.lastAttackTime=c;}}else{const a=Math.atan2(d.target.y-d.y,d.target.x-d.x);d.x+=Math.cos(a)*d.speed;d.y+=Math.sin(a)*d.speed;}}else{d.x+=d.speed;}if(d.health<=0||d.x>canvas.width)playerDroids.splice(i,1);}}
+        function checkBlobHealth() {
+            playerBlobs = playerBlobs.filter(b => b.health > 0);
+            playerDroids = playerDroids.filter(d => d.health > 0);
+
+            let energyGained = 0;
+            const defeatedEnemies = enemyBlobs.filter(b => b.health <= 0);
+            defeatedEnemies.forEach(b => {
+                const cost = enemyCosts[b.unitType] || BLOB_COST;
+                energyGained += cost / 2;
+            });
+            if(energyGained > 0) energy += energyGained;
+
+            enemyBlobs = enemyBlobs.filter(b => b.health > 0);
+        }
+        
+        // --- Main Loop & UI ---
+        
+        function startNextWave() {
+            if (!gameRunning) return;
+            isSpawning = true;
+            currentWave++;
+            if (currentWave > TOTAL_WAVES) {
+                gameEndTitle.textContent = "VICTORY!";
+                gameEndMessage.textContent = `You have defeated all ${TOTAL_WAVES} waves on ${currentMapData.difficulty} difficulty!`;
+                gameEndModal.classList.add('show');
+                gameRunning = false;
+                return;
+            }
+
+            overlayText.textContent = `WAVE ${currentWave}`;
+            overlay.classList.add('show');
+
+            setTimeout(() => {
+                overlay.classList.remove('show');
+                
+                const waveConfig = waveConfigs[currentMapData.difficulty][currentWave - 1];
+                let totalEnemies = 0;
+                let spawnSchedule = [];
+
+                for (const unitType in waveConfig) {
+                    totalEnemies += waveConfig[unitType];
+                    for (let i = 0; i < waveConfig[unitType]; i++) {
+                        spawnSchedule.push(unitType);
+                    }
+                }
+                enemiesToSpawn = totalEnemies;
+
+                spawnSchedule.sort(() => Math.random() - 0.5);
+
+                let spawnIndex = 0;
+                const spawnInterval = setInterval(() => {
+                    if (spawnIndex >= spawnSchedule.length || !gameRunning) {
+                        clearInterval(spawnInterval);
+                        isSpawning = false;
+                        return;
+                    }
+                    const unitType = spawnSchedule[spawnIndex];
+                    enemyBlobs.push(new Blob(canvas.width - 50, Math.random() * canvas.height, 'enemy', unitType));
+                    enemiesToSpawn--;
+                    spawnIndex++;
+                }, 500);
+
+            }, 2000);
+        }
+
+        function checkGameState() {
+            if (!gameRunning) return;
+
+            if (enemyBlobs.length === 0 && !isSpawning) {
+                startNextWave();
+            }
+
+            if (playerBlobs.length === 0 && playerDroids.length === 0 && energy < ANT_COST && (!isDroidUnlocked || energy < DROID_COST)) {
+                 gameEndTitle.textContent = "DEFEAT";
+                gameEndMessage.textContent = `You survived ${currentWave - 1} out of ${TOTAL_WAVES} waves.`;
+                gameEndModal.classList.add('show');
+                gameRunning = false;
+            }
+        }
+
+        function updateAndDrawCutscene() {
+            drawBackground();
+            [...playerBlobs, ...enemyBlobs, ...playerDroids].forEach(drawBlob);
+            projectiles.forEach(p => drawProjectiles([p]));
+            explosions.forEach(drawExplosion);
+
+            const state = cutsceneState;
+            state.timer++;
+
+            ctx.save();
+            const crackProgress = Math.min(1, state.timer / 60);
+            
+            ctx.strokeStyle = `rgba(255, 255, 200, ${1 - crackProgress})`;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            for (let i = 0; i < state.cracks.length; i++) {
+                const crack = state.cracks[i];
+                ctx.moveTo(crack.x1, crack.y1);
+                ctx.lineTo(lerp(crack.x1, crack.x2, crackProgress), lerp(crack.y1, crack.y2, crackProgress));
+            }
+            ctx.stroke();
+            
+            const holeRadius = 40 * crackProgress;
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.ellipse(state.x, state.y + 10, holeRadius, holeRadius / 2, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            if (state.timer > 30) {
+                 const emergeProgress = Math.min(1, (state.timer - 30) / 90);
+                 const currentY = lerp(state.y + CYBORG_RADIUS * 1.5, state.y, emergeProgress);
+                 
+                 const tempCyborg = new Blob(state.x, currentY, 'player', 'cyborg');
+                 drawBlob(tempCyborg);
+                 state.cyborgInstance = tempCyborg;
+            }
+            
+            if (state.timer > 180) {
+                isCutsceneActive = false;
+                playerBlobs.push(state.cyborgInstance);
+                gameLoop();
+            } else {
+                 animationFrameId = requestAnimationFrame(updateAndDrawCutscene);
+            }
+
+            ctx.restore();
+        }
+
+        function spawnCyborg() {
+            if (!gameRunning || isCutsceneActive) return;
+            isCutsceneActive = true;
+            
+            cutsceneState = {
+                timer: 0, x: 100, y: canvas.height / 2, cracks: [], cyborgInstance: null
+            };
+            for(let i = 0; i < 5; i++){
+                const angle = Math.random() * Math.PI * 2, length = Math.random() * 50 + 40;
+                cutsceneState.cracks.push({x1: cutsceneState.x, y1: cutsceneState.y, x2: cutsceneState.x + Math.cos(angle) * length, y2: cutsceneState.y + Math.sin(angle) * length});
+            }
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            updateAndDrawCutscene();
+        }
+        
+        function gameLoop() {
+            if (isCutsceneActive || !gameRunning || isTimeFrozen) { return; }
+
+            if (currentMapData.id === 'volcanicValley') updateGeysers();
+            if (currentMapData.id === 'crystallineCaves') updateHealingCrystals();
+            if (currentMapData.id === 'shiftingSands') updateSandstorm();
+            if (currentMapData.id === 'astralVoid') updateAsteroids();
+            if (currentMapData.id === 'whisperingJungle') updateVines();
+            if (currentMapData.id === 'corruptedLands') updateCorruption();
+            
+            drawBackground(); 
+            updateBlobs(); 
+            updateDroids(); 
+            updateProjectiles(); 
+            updateExplosions(); 
+            checkBlobHealth();
+            playerBlobs.forEach(drawBlob); 
+            enemyBlobs.forEach(drawBlob); 
+            playerDroids.forEach(drawDroid);
+            drawProjectiles(); 
+            explosions.forEach(drawExplosion);
+            updateUI();
+            checkGameState();
+            
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
+
+        function updateUI() {
+            waveCountSpan.textContent = currentWave > TOTAL_WAVES ? TOTAL_WAVES : currentWave;
+            enemyCountSpan.textContent = enemyBlobs.length + enemiesToSpawn;
+            playerCountSpan.textContent = playerBlobs.length;
+            playerDroidCountSpan.textContent = playerDroids.length;
+            energyCountSpan.textContent = Math.floor(energy);
+            spawnBtn.disabled = energy < BLOB_COST;
+            spawnMageBtn.disabled = energy < MAGE_COST;
+            spawnKnightBtn.disabled = energy < KNIGHT_COST;
+            spawnAntBtn.disabled = energy < ANT_COST;
+            spawnPaladinBtn.disabled = energy < PALADIN_COST;
+            spawnRogueBtn.disabled = energy < ROGUE_COST;
+            spawnCrossbowmanBtn.disabled = energy < CROSSBOWMAN_COST;
+            spawnDroidBtn.disabled = energy < DROID_COST || playerDroids.length >= DROID_LIMIT;
+        }
+        
+        function resizeCanvas(){const p=canvas.parentElement;canvas.width=p.clientWidth;canvas.height=400;}
+
+        function restartGame() {
+            playerBlobs = []; enemyBlobs = []; projectiles = []; explosions = []; playerDroids = [];
+            energy = 50; currentWave = 0; enemiesToSpawn = 0;
+            gameRunning = true; isTimeFrozen = false; isSpawning = false; isCutsceneActive = false;
+            overlay.classList.remove('show');
+            gameEndModal.classList.remove('show');
+            
+            clearInterval(energyTimer);
+            setupMap();
+            
+            for(let i = 0; i < 5; i++) playerBlobs.push(new Blob(50, Math.random() * canvas.height, 'player'));
+            
+            energyTimer = setInterval(() => { if(gameRunning && !isTimeFrozen) energy += ENERGY_RATE; }, 1000);
+            
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            gameLoop();
+        }
+        
+        function handleCommand() {
+            const command = commandInput.value.trim();
+            if (commandsUnlocked) {
+                if (!command.startsWith('/')) { devMessageEl.textContent = 'Error: Commands must start with /'; return; }
+                const parts = command.substring(1).split(/\s+/);
+                const mainCommand = parts[0];
+                devMessageEl.textContent = '';
+                if (mainCommand === 'give') {
+                    const value = parseInt(parts[2], 10);
+                    if (parts[1] === 'energy' && !isNaN(value)) { energy += value; devMessageEl.textContent = `Given ${value} energy.`; } 
+                    else { devMessageEl.textContent = 'Usage: /give energy [amount]'; }
+                } else if (mainCommand === 'summon') {
+                    const team = parts[1], unitType = parts[2], count = parseInt(parts[3], 10) || 1;
+                    if (!['player', 'enemy'].includes(team) || !validUnitTypes.includes(unitType)) { devMessageEl.textContent = `Invalid syntax or unit type.`; return; }
+                    for (let i = 0; i < count; i++) {
+                        if (team === 'player') {
+                            if (unitType === 'droid') playerDroids.push(new Droid(50, Math.random() * canvas.height));
+                            else playerBlobs.push(new Blob(50, Math.random() * canvas.height, 'player', unitType));
+                        } else {
+                            if (unitType === 'droid') { devMessageEl.textContent = 'Droids are player-only.'; continue; }
+                            enemyBlobs.push(new Blob(canvas.width - 50, Math.random() * canvas.height, 'enemy', unitType));
+                        }
+                    }
+                    devMessageEl.textContent = `Summoned ${count} ${unitType}(s) for ${team}.`;
+                } else if (mainCommand === 'destroy' && parts[1] === 'all') {
+                    playerBlobs = []; enemyBlobs = []; projectiles = []; playerDroids = [];
+                    devMessageEl.textContent = 'Destroyed all units.';
+                } else if (mainCommand === 'freeze') {
+                    isTimeFrozen = true; overlayText.textContent = "TIME FROZEN"; overlay.classList.add('show'); devMessageEl.textContent = 'Time frozen.';
+                }
+                else if (mainCommand === 'unfreeze') {
+                    isTimeFrozen = false; overlay.classList.remove('show'); devMessageEl.textContent = 'Time resumed.'; gameLoop();
+                } else { devMessageEl.textContent = `Unknown command.`; }
+            } else {
+                if (command === unlockCode) {
+                    commandsUnlocked = true; spawnCyborgBtn.style.display = 'block'; devMessageEl.textContent = 'Commands unlocked!';
+                } else { devMessageEl.textContent = 'Incorrect code.'; }
+            }
+            commandInput.value = '';
+        }
+        
+        // --- Event Listeners ---
+        function populateMapModal() {
+            mapGridContainer.innerHTML = '';
+            for (const mapId in maps) {
+                const map = maps[mapId];
+                const button = document.createElement('button');
+                button.className = `btn modal-btn map-btn`;
+                button.dataset.map = mapId;
+                button.innerHTML = `${map.name} <span class="modal-btn-desc">${map.desc}</span><span class="difficulty-label difficulty-${map.difficulty.toLowerCase()}">${map.difficulty}</span>`;
+                mapGridContainer.appendChild(button);
+            }
+        }
+
+        selectMapBtn.addEventListener('click', () => mapModal.classList.add('show'));
+        spawnUnitsBtn.addEventListener('click', () => {
+             unitSpawnContainer.classList.toggle('show');
+             defenseSpawnContainer.classList.remove('show');
+        });
+        defenseBlueprintsBtn.addEventListener('click', () => {
+             defenseSpawnContainer.classList.toggle('show');
+             unitSpawnContainer.classList.remove('show');
+        });
+        
+        mapModal.addEventListener('click', (e) => { if(e.target === mapModal) mapModal.classList.remove('show'); });
+        
+        mapModal.addEventListener('click', (e) => {
+            const mapButton = e.target.closest('.map-btn');
+            if (mapButton) {
+                const mapId = mapButton.dataset.map;
+                currentMapData = { id: mapId, ...maps[mapId] };
+                mapModal.classList.remove('show');
+                restartGame();
+            }
+        });
+
+        campaignBtn.addEventListener('click', () => {
+            devMessageEl.textContent = "Campaign mode is coming soon!";
+            setTimeout(() => { devMessageEl.textContent = ""; }, 3000);
+        });
+
+        redeemCodeBtn.addEventListener('click', () => {
+            if (localStorage.getItem('droidUnlocked')) {
+                devMessageEl.textContent = "Code already redeemed!";
+                return;
+            }
+            const code = prompt("Enter a code:");
+            if (code === 'droid4life') {
+                localStorage.setItem('droidUnlocked', 'true');
+                isDroidUnlocked = true;
+                spawnDroidBtn.style.display = 'block';
+                playerDroidCounter.style.display = 'flex';
+                devMessageEl.textContent = "Droid unit unlocked!";
+            } else if (code) {
+                 devMessageEl.textContent = "Invalid code.";
+            }
+        });
+        
+        spawnBtn.addEventListener('click', spawnPlayerBlob);
+        spawnMageBtn.addEventListener('click', spawnMageBlob);
+        spawnKnightBtn.addEventListener('click', spawnKnightBlob);
+        spawnAntBtn.addEventListener('click', spawnAntBlob);
+        spawnCyborgBtn.addEventListener('click', spawnCyborg);
+        spawnPaladinBtn.addEventListener('click', spawnPaladinBlob);
+        spawnRogueBtn.addEventListener('click', spawnRogueBlob);
+        spawnCrossbowmanBtn.addEventListener('click', spawnCrossbowmanBlob);
+        spawnDroidBtn.addEventListener('click', spawnPlayerDroid);
+
+        restartBtn.addEventListener('click', restartGame);
+        restartGameEndBtn.addEventListener('click', restartGame);
+        runCommandBtn.addEventListener('click', handleCommand);
+        commandInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleCommand(); });
+        commandInput.addEventListener('input', (e) => { if (!commandsUnlocked) e.target.value = e.target.value.replace(/[^0-9]/g, ''); });
+        window.addEventListener('resize', resizeCanvas);
+
+        window.onload = function() {
+            populateMapModal();
+            if (localStorage.getItem('droidUnlocked')) {
+                isDroidUnlocked = true;
+                spawnDroidBtn.style.display = 'block';
+                playerDroidCounter.style.display = 'flex';
+            }
+            currentMapData = { id: 'greenPlains', ...maps['greenPlains']};
+            resizeCanvas();
+            restartGame();
+        };
+    </script>
+</body>
+</html>
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Oreminer Game</title>
+  <style>
+    body {
+      background-color: #000;
+      color: #fff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      border-top: 5px solid red;
+      border-bottom: 5px solid red;
+    }
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      text-shadow: 0 0 10px red;
+    }
+    p {
+      font-size: 1.2rem;
+      margin-bottom: 3rem;
+      color: #ff4c4c;
+    }
+    a.play-button {
+      background-color: blue;
+      color: white;
+      text-decoration: none;
+      font-size: 2rem;
+      padding: 1rem 3rem;
+      border-radius: 10px;
+      box-shadow: 0 0 15px red;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    a.play-button:hover {
+      background-color: #cc0000;
+      box-shadow: 0 0 25px #ff0000;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Blob Battle Game!</h1>
+  <p>Enjoy intense battles, or simulation!</p>
+  <a href="game.html" class="play-button">PLAY</a>
+
+</body>
+</html>
+
