@@ -1,0 +1,2302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blob Battle</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            height: 100vh;
+            margin: 0;
+            background-color: #0d1117;
+            font-family: 'Inter', sans-serif;
+            color: #c9d1d9;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .main-ui-container {
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+            justify-content: center;
+            align-items: flex-start;
+        }
+        
+        .game-panel {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            background-color: #161b22;
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            border: 1px solid #30363d;
+            padding: 20px;
+        }
+
+        canvas {
+            border: 2px solid #30363d;
+            border-radius: 8px;
+            touch-action: none;
+            width: 100%;
+            height: 400px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .btn {
+            background-color: #21262d;
+            color: #c9d1d9;
+            border: 1px solid #30363d;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.4);
+        }
+
+        .btn:hover {
+            background-color: #30363d;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:disabled {
+            background-color: #1a1a1a;
+            color: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        #spawn-btn {
+            background-color: #238636;
+            border-color: #34d058;
+            color: white;
+            font-weight: bold;
+        }
+
+        #spawn-btn:hover {
+            background-color: #2ea043;
+        }
+        
+        #spawn-mage-btn {
+            background-color: #553c9a;
+            border-color: #805ad5;
+            color: white;
+            font-weight: bold;
+        }
+        
+        #spawn-mage-btn:hover {
+            background-color: #6b46c1;
+        }
+
+        #spawn-knight-btn {
+            background-color: #2b6cb0;
+            border-color: #4299e1;
+            color: white;
+            font-weight: bold;
+        }
+
+        #spawn-knight-btn:hover {
+            background-color: #3182ce;
+        }
+        
+        #spawn-cyborg-btn {
+            background-color: #b31212;
+            border-color: #f85149;
+            color: white;
+            font-weight: bold;
+        }
+
+        #spawn-cyborg-btn:hover {
+            background-color: #d9342e;
+        }
+
+        #spawn-ant-btn {
+            background-color: #333333;
+            border-color: #5c5c5c;
+            color: white;
+            font-weight: bold;
+        }
+
+        #spawn-ant-btn:hover {
+            background-color: #4d4d4d;
+        }
+
+        .score-board {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 250px;
+            padding: 20px;
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            height: fit-content;
+        }
+
+        .score-board span {
+            padding: 10px 15px;
+            background-color: #1f2428;
+            border-radius: 8px;
+            border: 1px solid #30363d;
+            font-size: 1rem;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .score-board h2 {
+            font-size: 1.5rem;
+            text-align: center;
+            margin: 0;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #30363d;
+        }
+        
+        select {
+            background-color: #21262d;
+            color: #c9d1d9;
+            border: 1px solid #30363d;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            text-transform: capitalize;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="white"><path d="M7 9l5-5-1.5-1.5L7 6l-3.5-3.5L2 4z"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 10px top 50%;
+            padding-right: 30px;
+        }
+
+        .dev-commands {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .dev-commands input[type="text"] {
+            flex-grow: 1;
+            background-color: #0d1117;
+            border: 1px solid #30363d;
+            color: #c9d1d9;
+            padding: 10px;
+            border-radius: 8px;
+            max-width: 300px;
+        }
+        
+        .dev-message {
+            margin-top: 5px;
+            font-size: 0.9rem;
+            color: #f85149;
+            min-height: 20px;
+        }
+
+        .map-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        .game-footer {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 999;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none;
+        }
+        
+        .overlay.show {
+            display: flex;
+        }
+        
+        .overlay-text {
+            color: white;
+            font-size: 2.5rem;
+            font-weight: bold;
+            text-shadow: 0 0 10px black;
+        }
+
+        /* Map Modal Styles */
+        .map-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(13, 17, 23, 0.9);
+            z-index: 1000;
+            display: none; /* Hidden by default */
+            justify-content: center;
+            align-items: center;
+        }
+
+        .map-modal.show {
+            display: flex;
+        }
+
+        .map-modal-content {
+            background-color: #161b22;
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid #30363d;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            width: 90%;
+            max-width: 800px;
+        }
+        
+        .map-modal-content h2 {
+            margin-top: 0;
+            font-size: 2rem;
+            margin-bottom: 25px;
+        }
+
+        .map-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .map-btn {
+            padding: 15px 10px;
+            font-size: 1rem;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .map-btn-desc {
+            font-size: 0.8rem;
+            font-weight: normal;
+            display: block;
+            margin-top: 5px;
+            color: #8b949e;
+        }
+
+
+        @media (max-width: 800px) {
+            .main-ui-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            .score-board {
+                width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-ui-container">
+        <div class="game-panel">
+            <div class="map-controls">
+                <button id="select-map-btn" class="btn">Select Map</button>
+            </div>
+            <canvas id="gameCanvas"></canvas>
+            <div class="controls">
+                <button id="spawn-btn" class="btn">Spawn Blob (Cost: 10)</button>
+                <button id="spawn-mage-btn" class="btn">Spawn Mage (Cost: 50)</button>
+                <button id="spawn-knight-btn" class="btn">Spawn Knight (Cost: 40)</button>
+                <button id="spawn-ant-btn" class="btn">Spawn Ant (Cost: 8)</button>
+                <button id="spawn-cyborg-btn" class="btn" style="display: none;">Spawn Cyborg (Admin)</button>
+                <select id="difficulty-select">
+                    <option value="easy">Easy</option>
+                    <option value="normal" selected>Normal</option>
+                    <option value="hard">Hard</option>
+                </select>
+                <button id="restart-btn" class="btn">Restart Game</button>
+            </div>
+            <div class="dev-commands">
+                <input type="text" id="command-input" placeholder="Enter command...">
+                <button id="run-command-btn" class="btn">Run Command</button>
+            </div>
+            <div id="dev-message" class="dev-message"></div>
+            <p class="game-footer" style="font-size: 0.9rem; margin-top: 10px;">Player blobs spawn from the left, enemies from the right.</p>
+        </div>
+        <div class="score-board">
+            <h2>Game Stats</h2>
+            <span>Enemies Left: <span id="enemy-count">0</span></span>
+            <span>Player Blobs: <span id="player-count">0</span></span>
+            <span>Energy: <span id="energy-count">0</span></span>
+        </div>
+    </div>
+    
+    <div class="overlay" id="overlay">
+        <div class="overlay-text">TIME FROZEN</div>
+    </div>
+
+    <!-- Map Selection Modal -->
+    <div class="map-modal" id="map-modal">
+        <div class="map-modal-content">
+            <h2>Choose a Map</h2>
+            <div class="map-grid">
+                <button class="btn map-btn" data-map="greenPlains">Green Plains <span class="map-btn-desc">A classic, balanced battlefield.</span></button>
+                <button class="btn map-btn" data-map="rockyWorld">Rocky World <span class="map-btn-desc">Obstacles provide cover.</span></button>
+                <button class="btn map-btn" data-map="volcanicValley">Volcanic Valley <span class="map-btn-desc">Lava geysers erupt randomly.</span></button>
+                <button class="btn map-btn" data-map="glacialIcelands">Glacial Icelands <span class="map-btn-desc">Slippery ice and crystals.</span></button>
+                <button class="btn map-btn" data-map="crystallineCaves">Crystalline Caves <span class="map-btn-desc">Crystals pulse with healing energy.</span></button>
+                <button class="btn map-btn" data-map="shiftingSands">Shifting Sands <span class="map-btn-desc">Sandstorms push all units.</span></button>
+                <button class="btn map-btn" data-map="astralVoid">Astral Void <span class="map-btn-desc">Low gravity increases speed.</span></button>
+                <button class="btn map-btn" data-map="whisperingJungle">Whispering Jungle <span class="map-btn-desc">Swinging vines can stun units.</span></button>
+                <button class="btn map-btn" data-map="corruptedLands">Corrupted Lands <span class="map-btn-desc">Pools damage players and heal enemies.</span></button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const selectMapBtn = document.getElementById('select-map-btn');
+        const mapModal = document.getElementById('map-modal');
+        const spawnBtn = document.getElementById('spawn-btn');
+        const spawnMageBtn = document.getElementById('spawn-mage-btn');
+        const spawnKnightBtn = document.getElementById('spawn-knight-btn');
+        const spawnAntBtn = document.getElementById('spawn-ant-btn');
+        const spawnCyborgBtn = document.getElementById('spawn-cyborg-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const enemyCountSpan = document.getElementById('enemy-count');
+        const playerCountSpan = document.getElementById('player-count');
+        const energyCountSpan = document.getElementById('energy-count');
+        const difficultySelect = document.getElementById('difficulty-select');
+        const commandInput = document.getElementById('command-input');
+        const runCommandBtn = document.getElementById('run-command-btn');
+        const devMessageEl = document.getElementById('dev-message');
+        const overlay = document.getElementById('overlay');
+
+        let playerBlobs = [];
+        let enemyBlobs = [];
+        let gameRunning = true;
+        let animationFrameId;
+        let projectiles = [];
+        let explosions = [];
+        let playerDroids = [];
+        const ENERGY_PER_KILL = 3;
+        
+        let commandsUnlocked = false;
+        let isTimeFrozen = false;
+
+        // Game constants
+        const BLOB_RADIUS = 10;
+        const OGRE_RADIUS = 20;
+        const DRUID_RADIUS = 15;
+        const WARLOCK_RADIUS = 15;
+        const KNIGHT_RADIUS = 12;
+        const BOCK_SIZE = 25; // Size for the square bock
+        const ANT_RADIUS = 6;
+        const CYBORG_RADIUS = 25;
+        const DROID_RADIUS = 5;
+
+        const PLAYER_COLOR = '#58a6ff';
+        const KNIGHT_COLOR = '#4299e1';
+        const ENEMY_COLOR = '#e34234';
+        const OGRE_COLOR = '#34D058';
+        const DRUID_COLOR = '#238636';
+        const WARLOCK_COLOR = '#663399';
+        const BOCK_COLOR = '#b2ff00';
+        const ANT_COLOR = '#333333';
+        
+        const MELEE_ATTACK_RANGE = 40;
+        const ARCHER_ATTACK_RANGE = 300;
+        const MAGE_ATTACK_RANGE = 400;
+        const WARLOCK_ATTACK_RANGE = 450;
+        const DRUID_SUMMON_RANGE = 500;
+        const BLOB_SPEED = 0.5;
+        const BOMBER_SPEED = 1;
+        const OGRE_SPEED = 0.2;
+        const BOCK_SPEED = 0.4;
+        const KNIGHT_SPEED = 0.3;
+        const DRUID_SPEED = 0;
+        const ANT_SPEED = 0.7;
+
+        const BASE_HEALTH = 50;
+        const BOCK_HEALTH = 75;
+        const OGRE_HEALTH = 300;
+        const DRUID_HEALTH = 120;
+        const WARLOCK_HEALTH = 80;
+        const KNIGHT_HEALTH = 200;
+        const ANT_HEALTH = 25;
+        const HELMET_HEALTH_MULTIPLIER = 2;
+        
+        const MELEE_ATTACK_DAMAGE = 10;
+        const ARCHER_ATTACK_DAMAGE = 40;
+        const HEAVY_MELEE_ATTACK_DAMAGE = 25;
+        const MAGE_FIREBALL_DAMAGE = 65;
+        const WARLOCK_CURSE_DAMAGE = 15;
+        const BOMBER_EXPLOSION_DAMAGE = 60;
+        const OGRE_CLUB_DAMAGE = 75;
+        const BOCK_PUNCH_DAMAGE = 20;
+        const KNIGHT_ATTACK_DAMAGE = 20;
+        const ANT_ATTACK_DAMAGE = 12;
+        const BOMBER_EXPLOSION_RADIUS = 80;
+        const SPEAR_DAMAGE = 30;
+        const CYBORG_PUNCH_DAMAGE = 50;
+        const CYBORG_SWORD_DAMAGE = 9999;
+        const CYBORG_SWORD_AOE_RADIUS = 60;
+        const CYBORG_BEAM_DAMAGE = 200;
+        const DROID_BULLET_DAMAGE = 40;
+        
+        const BLOB_COST = 10;
+        const MAGE_COST = 50;
+        const KNIGHT_COST = 40;
+        const ANT_COST = 8;
+        const ENERGY_RATE = 1;
+        const SHIELD_DAMAGE_REDUCTION = 0.9;
+        const SHIELD_SPAWN_RATE = 0.4;
+        const HELMET_SPAWN_RATE = 0.4;
+        
+        const MELEE_ATTACK_COOLDOWN = 1000;
+        const ARCHER_ATTACK_COOLDOWN = 5000;
+        const HEAVY_MELEE_ATTACK_COOLDOWN = 2000;
+        const MAGE_ATTACK_COOLDOWN = 5000;
+        const WARLOCK_ATTACK_COOLDOWN = 6000;
+        const OGRE_ATTACK_COOLDOWN = 3000;
+        const BOCK_ATTACK_COOLDOWN = 1500;
+        const KNIGHT_ATTACK_COOLDOWN = 2500;
+        const ANT_ATTACK_COOLDOWN = 800;
+        const MAGE_SUMMON_COOLDOWN = 10000;
+        const DRUID_SUMMON_COOLDOWN = 15000;
+        const CYBORG_PUNCH_COOLDOWN = 800;
+        const CYBORG_SWORD_COOLDOWN = 2000;
+        const CYBORG_BEAM_COOLDOWN = 6000;
+        const CYBORG_DROID_COOLDOWN = 10000;
+        const DROID_ATTACK_COOLDOWN = 5000;
+        
+        const BOMBER_SPAWN_RATE = 0.1;
+        const SPEAR_SPAWN_RATE = 0.3;
+        const HEAVY_MELEE_SPAWN_RATE = 0.15;
+        const WARLOCK_SPAWN_RATE = 0.05;
+        const ANT_SPAWN_RATE = 0.2;
+        
+        const enemySpawnRates = {
+            easy: 3000,
+            normal: 2000,
+            hard: 1000
+        };
+        
+        const validUnitTypes = ['normal', 'mage', 'bomber', 'archer', 'heavy-melee', 'spear', 'ogre', 'druid', 'warlock', 'bock', 'knight', 'ant', 'cyborg', 'droid'];
+        const unlockCode = "2014";
+        const DEBUFF_DURATION = 5000; // 5 seconds
+        const SLOW_FACTOR = 0.5;
+        const ATTACK_SLOW_FACTOR = 0.5;
+
+        // Map-specific variables
+        let currentMap = 'greenPlains';
+        let rocks = [];
+        let geysers = [];
+        let healingCrystals = [];
+        let asteroids = [];
+        let corruptionPuddles = [];
+        let vines = [];
+        let sandstorm = { active: false, timer: 0, direction: 1, duration: 0 };
+        const GEYSER_DAMAGE = 50;
+        const HEALING_PULSE_AMOUNT = 10;
+        const CORRUPTION_DAMAGE = 0.1;
+        const VINE_STUN_DURATION = 1000;
+        
+        // Game state
+        let energy = 50;
+        let enemySpawnTimer;
+        let ogreSpawnTimer;
+        let playerSpawnTimer;
+        let energyTimer;
+
+        // Helper for linear interpolation
+        function lerp(a, b, t) {
+            return a + (b - a) * t;
+        }
+
+        // Draw the background based on the current map
+        function drawBackground() {
+            switch(currentMap) {
+                case 'greenPlains':
+                    ctx.fillStyle = '#1f4f1f';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    break;
+                case 'rockyWorld':
+                case 'glacialIcelands':
+                    ctx.fillStyle = currentMap === 'rockyWorld' ? '#30363d' : '#a4d8f0';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    rocks.forEach(rock => {
+                        ctx.fillStyle = rock.color;
+                        ctx.beginPath();
+                        ctx.moveTo(rock.x + rock.points[0].x, rock.y + rock.points[0].y);
+                        for(let i = 1; i < rock.points.length; i++) {
+                            ctx.lineTo(rock.x + rock.points[i].x, rock.y + rock.points[i].y);
+                        }
+                        ctx.closePath();
+                        ctx.fill();
+                    });
+                    break;
+                case 'volcanicValley':
+                    ctx.fillStyle = '#4a1d1d';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    geysers.forEach(drawGeyser);
+                    break;
+                 case 'crystallineCaves':
+                    ctx.fillStyle = '#1e1b2e';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    healingCrystals.forEach(drawHealingCrystal);
+                    break;
+                case 'shiftingSands':
+                    ctx.fillStyle = '#d2b48c';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    break;
+                 case 'astralVoid':
+                    ctx.fillStyle = '#0c0a18';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    asteroids.forEach(drawAsteroid);
+                    break;
+                case 'whisperingJungle':
+                    ctx.fillStyle = '#143d2d';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    vines.forEach(drawVine);
+                    break;
+                case 'corruptedLands':
+                    ctx.fillStyle = '#42324f';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    corruptionPuddles.forEach(drawCorruptionPuddle);
+                    break;
+            }
+        }
+        
+        function setupMap() {
+            rocks = [];
+            geysers = [];
+            healingCrystals = [];
+            asteroids = [];
+            vines = [];
+            corruptionPuddles = [];
+            sandstorm = { active: false, timer: 0, direction: 1, duration: 0 };
+
+            switch(currentMap) {
+                case 'rockyWorld':
+                    generateRocks('rock');
+                    break;
+                case 'glacialIcelands':
+                    generateRocks('crystal');
+                    break;
+                case 'volcanicValley':
+                    generateGeysers();
+                    break;
+                case 'crystallineCaves':
+                    generateHealingCrystals();
+                    break;
+                case 'shiftingSands':
+                     sandstorm.timer = Math.random() * 5000 + 3000;
+                    break;
+                case 'astralVoid':
+                    generateAsteroids();
+                    break;
+                case 'whisperingJungle':
+                    generateVines();
+                    break;
+                case 'corruptedLands':
+                    generateCorruptionPuddles();
+                    break;
+            }
+        }
+
+        function generateRocks(type) {
+            const numRocks = Math.floor(Math.random() * 15) + 10;
+            for (let i = 0; i < numRocks; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const radius = Math.random() * 20 + 8;
+                const points = [];
+                const numPoints = Math.floor(Math.random() * 5) + 5;
+                for (let j = 0; j < numPoints; j++) {
+                    const angle = (j / numPoints) * Math.PI * 2;
+                    const r = radius * (0.8 + Math.random() * 0.4);
+                    points.push({ x: Math.cos(angle) * r, y: Math.sin(angle) * r });
+                }
+
+                let color;
+                if (type === 'rock') {
+                    color = ['#5f6c77', '#4a5568', '#718096'][Math.floor(Math.random() * 3)];
+                } else { // crystal
+                    color = ['#dbe4f0', '#b0c4de', '#c0d0e8'][Math.floor(Math.random() * 3)];
+                }
+                rocks.push({ x, y, points, color });
+            }
+        }
+
+        function generateGeysers() {
+            const numGeysers = Math.floor(Math.random() * 3) + 3;
+            for (let i = 0; i < numGeysers; i++) {
+                geysers.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    radius: 20,
+                    timer: Math.random() * 5000 + 2000,
+                    state: 'idle', // idle, warning, erupting
+                    duration: 0
+                });
+            }
+        }
+
+        function updateGeysers() {
+            geysers.forEach(g => {
+                g.timer -= 1000 / 60; // Approximate delta time
+                if (g.timer <= 0 && g.state === 'idle') {
+                    g.state = 'warning';
+                    g.duration = 2000; // 2 sec warning
+                } else if (g.state === 'warning') {
+                    g.duration -= 1000 / 60;
+                    if (g.duration <= 0) {
+                        g.state = 'erupting';
+                        g.duration = 1000; // 1 sec eruption
+                        // Deal damage
+                        [...playerBlobs, ...enemyBlobs, ...playerDroids].forEach(blob => {
+                            const dist = Math.hypot(blob.x - g.x, blob.y - g.y);
+                            if (dist < g.radius * 3) {
+                                blob.health -= GEYSER_DAMAGE;
+                            }
+                        });
+                    }
+                } else if (g.state === 'erupting') {
+                    g.duration -= 1000 / 60;
+                    if (g.duration <= 0) {
+                        g.state = 'idle';
+                        g.timer = Math.random() * 8000 + 5000;
+                    }
+                }
+            });
+        }
+        
+        function drawGeyser(g) {
+            // Base rock formation
+            ctx.fillStyle = '#2b1a1a';
+            ctx.beginPath();
+            ctx.arc(g.x, g.y, g.radius, 0, Math.PI * 2);
+            ctx.fill();
+
+            if (g.state === 'warning') {
+                const warningRadius = g.radius * 3 * (1 - g.duration / 2000);
+                ctx.strokeStyle = `rgba(255, 165, 0, 0.7)`;
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(g.x, g.y, warningRadius, 0, Math.PI * 2);
+                ctx.stroke();
+            } else if (g.state === 'erupting') {
+                const eruptionRadius = g.radius * 3 * (g.duration / 1000);
+                ctx.fillStyle = `rgba(255, 69, 0, ${0.8 * (g.duration / 1000)})`;
+                ctx.beginPath();
+                ctx.arc(g.x, g.y, eruptionRadius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function generateHealingCrystals() {
+            const numCrystals = Math.floor(Math.random() * 2) + 2;
+             for (let i = 0; i < numCrystals; i++) {
+                healingCrystals.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    radius: 15,
+                    timer: Math.random() * 4000 + 3000,
+                    duration: 0
+                });
+            }
+        }
+
+        function updateHealingCrystals() {
+            healingCrystals.forEach(c => {
+                c.timer -= 1000 / 60;
+                if (c.timer <= 0) {
+                    let closestBlob = null;
+                    let minDist = Infinity;
+                     [...playerBlobs, ...enemyBlobs, ...playerDroids].forEach(blob => {
+                        if (blob.health < blob.maxHealth) {
+                            const dist = Math.hypot(blob.x - c.x, blob.y - c.y);
+                            if (dist < minDist) {
+                                minDist = dist;
+                                closestBlob = blob;
+                            }
+                        }
+                    });
+
+                    if (closestBlob) {
+                        closestBlob.health = Math.min(closestBlob.maxHealth, closestBlob.health + HEALING_PULSE_AMOUNT);
+                    }
+                    
+                    c.duration = 1000;
+                    c.timer = Math.random() * 6000 + 4000;
+                }
+                if (c.duration > 0) c.duration -= 1000/60;
+            });
+        }
+        
+        function drawHealingCrystal(c) {
+            const pulse = c.duration > 0 ? Math.sin((1 - c.duration / 1000) * Math.PI) : 0;
+            ctx.fillStyle = `rgba(173, 216, 230, ${0.5 + pulse * 0.5})`;
+            ctx.shadowColor = 'lightblue';
+            ctx.shadowBlur = 15 + pulse * 10;
+            ctx.beginPath();
+            ctx.arc(c.x, c.y, c.radius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        }
+
+        function updateSandstorm() {
+            sandstorm.timer -= 1000 / 60;
+            if (sandstorm.timer <= 0 && !sandstorm.active) {
+                sandstorm.active = true;
+                sandstorm.duration = Math.random() * 2000 + 2000;
+                sandstorm.direction = Math.random() < 0.5 ? 1 : -1;
+            }
+
+            if(sandstorm.active) {
+                sandstorm.duration -= 1000 / 60;
+                const stormForce = 0.5 * sandstorm.direction;
+                 [...playerBlobs, ...enemyBlobs, ...playerDroids].forEach(b => b.x += stormForce);
+
+                if (sandstorm.duration <= 0) {
+                    sandstorm.active = false;
+                    sandstorm.timer = Math.random() * 8000 + 8000;
+                }
+            }
+        }
+
+        function generateAsteroids() {
+            for (let i = 0; i < 15; i++) {
+                asteroids.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    radius: Math.random() * 10 + 5,
+                    vx: (Math.random() - 0.5) * 0.5,
+                    vy: (Math.random() - 0.5) * 0.5,
+                    color: '#5f6c77'
+                });
+            }
+        }
+        
+        function updateAsteroids() {
+            asteroids.forEach(a => {
+                a.x += a.vx;
+                a.y += a.vy;
+                if (a.x < -a.radius) a.x = canvas.width + a.radius;
+                if (a.x > canvas.width + a.radius) a.x = -a.radius;
+                if (a.y < -a.radius) a.y = canvas.height + a.radius;
+                if (a.y > canvas.height + a.radius) a.y = -a.radius;
+            });
+        }
+        
+        function drawAsteroid(a) {
+            ctx.fillStyle = a.color;
+            ctx.beginPath();
+            ctx.arc(a.x, a.y, a.radius, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function generateVines() {
+            const numVines = Math.floor(Math.random() * 2) + 2;
+            for (let i = 0; i < numVines; i++) {
+                vines.push({
+                    x: Math.random() * canvas.width * 0.6 + canvas.width * 0.2, // Avoid edges
+                    length: canvas.height * 1.2,
+                    angle: 0,
+                    speed: (Math.random() - 0.5) * 0.01 + 0.005,
+                    timer: Math.random() * 7000 + 4000
+                });
+            }
+        }
+
+        function updateVines() {
+            vines.forEach(v => {
+                v.timer -= 1000 / 60;
+                if (v.timer <= 0) {
+                    v.angle += v.speed;
+                    if (Math.abs(v.angle) > Math.PI / 8) {
+                        v.speed *= -1; // swing back
+                        if (Math.abs(v.angle) > Math.PI / 7) { // Reset after a full swing
+                            v.angle = 0;
+                            v.timer = Math.random() * 7000 + 4000;
+                        }
+                    }
+
+                    // Collision detection
+                    const endX = v.x + Math.sin(v.angle) * v.length;
+                    const endY = Math.cos(v.angle) * v.length;
+                    [...playerBlobs, ...enemyBlobs, ...playerDroids].forEach(b => {
+                        const dist = Math.abs((endY - 0) * b.x - (endX - v.x) * b.y + endX * 0 - endY * v.x) / Math.hypot(endY - 0, endX - v.x);
+                        if (dist < b.radius + 5 && !b.isStunned) {
+                            b.isStunned = true;
+                            b.stunTimer = VINE_STUN_DURATION;
+                        }
+                    });
+                }
+            });
+        }
+        
+        function drawVine(v) {
+             if (v.timer > 0) return;
+             ctx.strokeStyle = '#2f6b4a';
+             ctx.lineWidth = 10;
+             ctx.lineCap = 'round';
+             ctx.beginPath();
+             ctx.moveTo(v.x, 0);
+             const endX = v.x + Math.sin(v.angle) * v.length;
+             const endY = Math.cos(v.angle) * v.length;
+             ctx.lineTo(endX, endY);
+             ctx.stroke();
+        }
+        
+        function generateCorruptionPuddles() {
+            const numPuddles = Math.floor(Math.random() * 3) + 2;
+            for(let i = 0; i < numPuddles; i++) {
+                corruptionPuddles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    radius: Math.random() * 40 + 30,
+                });
+            }
+        }
+
+        function updateCorruption() {
+             corruptionPuddles.forEach(p => {
+                playerBlobs.forEach(b => {
+                    if (Math.hypot(b.x - p.x, b.y - p.y) < p.radius) {
+                        b.health -= CORRUPTION_DAMAGE;
+                    }
+                });
+                 playerDroids.forEach(b => {
+                    if (Math.hypot(b.x - p.x, b.y - p.y) < p.radius) {
+                        b.health -= CORRUPTION_DAMAGE;
+                    }
+                });
+                enemyBlobs.forEach(b => {
+                     if (Math.hypot(b.x - p.x, b.y - p.y) < p.radius) {
+                        b.health = Math.min(b.maxHealth, b.health + CORRUPTION_DAMAGE);
+                    }
+                });
+             });
+        }
+        
+        function drawCorruptionPuddle(p) {
+            ctx.fillStyle = 'rgba(138, 43, 226, 0.3)';
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Blob Constructor
+        function Blob(x, y, type, unitType = 'normal') {
+            this.x = x;
+            this.y = y;
+            this.type = type;
+            this.unitType = unitType;
+            
+            this.isMage = this.unitType === 'mage';
+            this.isBomber = this.unitType === 'bomber';
+            this.isArcher = this.unitType === 'archer';
+            this.isHeavyMelee = this.unitType === 'heavy-melee';
+            this.isSpear = this.unitType === 'spear';
+            this.isOgre = this.unitType === 'ogre';
+            this.isDruid = this.unitType === 'druid';
+            this.isWarlock = this.unitType === 'warlock';
+            this.isBock = this.unitType === 'bock';
+            this.isKnight = this.unitType === 'knight';
+            this.isAnt = this.unitType === 'ant';
+            this.isCyborg = this.unitType === 'cyborg';
+
+            this.radius = this.isOgre ? OGRE_RADIUS : (this.isDruid ? DRUID_RADIUS : (this.isWarlock ? WARLOCK_RADIUS : (this.isBock ? BOCK_SIZE / 2 : (this.isKnight ? KNIGHT_RADIUS : (this.isAnt ? ANT_RADIUS : (this.isCyborg ? CYBORG_RADIUS : BLOB_RADIUS))))));
+            this.color = this.isDruid ? DRUID_COLOR : (this.isOgre ? OGRE_COLOR : (this.isMage ? '#805ad5' : (this.isBomber ? '#d68128' : (this.isWarlock ? WARLOCK_COLOR : (this.isBock ? BOCK_COLOR : (this.isKnight ? KNIGHT_COLOR : (this.isAnt ? ANT_COLOR : (this.isCyborg ? '#30363d' : (type === 'player' ? PLAYER_COLOR : ENEMY_COLOR)))))))));
+
+            this.hasShield = this.unitType === 'normal' ? Math.random() < SHIELD_SPAWN_RATE : false;
+            this.hasHelmet = (this.unitType === 'normal' || this.isKnight) ? Math.random() < HELMET_SPAWN_RATE : false;
+
+            this.weaponType = 'sword';
+            if(this.isHeavyMelee) {
+                this.weaponType = Math.random() < 0.5 ? 'mace' : 'axe';
+            }
+
+            this.maxHealth = BASE_HEALTH;
+            if (this.hasHelmet) this.maxHealth *= HELMET_HEALTH_MULTIPLIER;
+            if (this.isMage) { this.maxHealth = 75; }
+            if (this.isWarlock) { this.maxHealth = WARLOCK_HEALTH; }
+            if (this.isArcher) { this.maxHealth = 20; }
+            if (this.isHeavyMelee) { this.maxHealth = 150; }
+            if (this.isOgre) { this.maxHealth = 300; }
+            if (this.isDruid) { this.maxHealth = DRUID_HEALTH; }
+            if (this.isBock) { this.maxHealth = BOCK_HEALTH; }
+            if (this.isKnight) { this.maxHealth = KNIGHT_HEALTH; }
+            if (this.isAnt) { this.maxHealth = ANT_HEALTH; }
+            if (this.isCyborg) { this.maxHealth = 3000; }
+            
+            this.health = this.maxHealth;
+            this.attackDamage = MELEE_ATTACK_DAMAGE;
+            this.attackCooldown = MELEE_ATTACK_COOLDOWN;
+            this.originalAttackCooldown = this.attackCooldown;
+            this.isAttacking = false;
+            this.lastAttackTime = 0;
+            this.debuffedAt = 0;
+            this.debuffDuration = 0;
+            this.lastArm1Attack = 0;
+            this.lastArm2Attack = 0;
+            this.lastArm3Attack = 0;
+            this.lastArm4Attack = 0;
+            this.isSlipping = false;
+            this.slipTimer = 0;
+            this.slipVx = 0;
+            this.slipVy = 0;
+            this.isStunned = false;
+            this.stunTimer = 0;
+            
+            // Set base speed based on unit type
+            this.originalSpeed = BLOB_SPEED;
+            if (this.isBomber) { this.originalSpeed = BOMBER_SPEED; }
+            if (this.isOgre) { this.originalSpeed = OGRE_SPEED; }
+            if (this.isBock) { this.originalSpeed = BOCK_SPEED; }
+            if (this.isKnight) { this.originalSpeed = KNIGHT_SPEED; }
+            if (this.isAnt) { this.originalSpeed = ANT_SPEED; }
+            if (this.isDruid) { this.originalSpeed = DRUID_SPEED; }
+            if (this.isWarlock) { this.originalSpeed = BLOB_SPEED; }
+            if (this.isCyborg) { this.originalSpeed = 0.2; }
+
+            if (this.isMage) {
+                this.attackDamage = MAGE_FIREBALL_DAMAGE;
+                this.attackCooldown = MAGE_ATTACK_COOLDOWN;
+                this.attackRange = MAGE_ATTACK_RANGE;
+            } else if (this.isWarlock) {
+                this.attackDamage = WARLOCK_CURSE_DAMAGE;
+                this.attackCooldown = WARLOCK_ATTACK_COOLDOWN;
+                this.attackRange = WARLOCK_ATTACK_RANGE;
+            } else if (this.isBomber) {
+                // Bomber has no attack cooldown, it just explodes on contact
+                this.attackRange = this.radius + BLOB_RADIUS; 
+            } else if (this.isArcher) {
+                this.attackDamage = ARCHER_ATTACK_DAMAGE;
+                this.attackCooldown = ARCHER_ATTACK_COOLDOWN;
+                this.attackRange = ARCHER_ATTACK_RANGE;
+            } else if (this.isHeavyMelee) {
+                this.attackDamage = HEAVY_MELEE_ATTACK_DAMAGE;
+                this.attackCooldown = HEAVY_MELEE_ATTACK_COOLDOWN;
+                this.attackRange = MELEE_ATTACK_RANGE;
+            } else if (this.isSpear) {
+                this.attackDamage = SPEAR_DAMAGE;
+                this.attackCooldown = MELEE_ATTACK_COOLDOWN;
+                this.attackRange = MELEE_ATTACK_RANGE;
+            } else if (this.isOgre) {
+                this.attackDamage = OGRE_CLUB_DAMAGE;
+                this.attackCooldown = OGRE_ATTACK_COOLDOWN;
+                this.attackRange = OGRE_RADIUS + BLOB_RADIUS;
+            } else if (this.isDruid) {
+                this.attackDamage = 0;
+                this.attackCooldown = DRUID_SUMMON_COOLDOWN;
+                this.attackRange = DRUID_SUMMON_RANGE;
+            } else if (this.isBock) {
+                 this.attackDamage = BOCK_PUNCH_DAMAGE;
+                 this.attackCooldown = BOCK_ATTACK_COOLDOWN;
+                 this.attackRange = BOCK_SIZE;
+            } else if (this.isKnight) {
+                 this.attackDamage = KNIGHT_ATTACK_DAMAGE;
+                 this.attackCooldown = KNIGHT_ATTACK_COOLDOWN;
+                 this.attackRange = MELEE_ATTACK_RANGE;
+            } else if (this.isAnt) {
+                 this.attackDamage = ANT_ATTACK_DAMAGE;
+                 this.attackCooldown = ANT_ATTACK_COOLDOWN;
+                 this.attackRange = MELEE_ATTACK_RANGE;
+            } else if (this.isCyborg) {
+                this.attackRange = MELEE_ATTACK_RANGE + 20; // For punch and sword
+            } else {
+                this.attackRange = MELEE_ATTACK_RANGE;
+            }
+            this.target = null;
+        }
+
+        // Draw a blob with its appropriate gear and animations
+        function drawBlob(blob) {
+            ctx.save();
+            ctx.translate(blob.x, blob.y);
+            const direction = blob.type === 'player' ? 1 : -1;
+            ctx.scale(direction, 1);
+
+            if (blob.isBock) {
+                // Draw the square body of the Bock
+                const halfSize = BOCK_SIZE / 2;
+                ctx.fillStyle = BOCK_COLOR;
+                ctx.fillRect(-halfSize, -halfSize, BOCK_SIZE, BOCK_SIZE);
+
+                // Draw the eyes
+                ctx.fillStyle = 'white';
+                const eyeSize = 8;
+                const eyeSpacing = 8;
+                const eyeYOffset = -5;
+                ctx.fillRect(-eyeSpacing - eyeSize / 2, eyeYOffset - eyeSize / 2, eyeSize, eyeSize);
+                ctx.fillRect(eyeSpacing - eyeSize / 2, eyeYOffset - eyeSize / 2, eyeSize, eyeSize);
+
+                // Draw the black pupils
+                ctx.fillStyle = 'black';
+                const pupilSize = 4;
+                ctx.fillRect(-eyeSpacing - pupilSize / 2, eyeYOffset - pupilSize / 2, pupilSize, pupilSize);
+                ctx.fillRect(eyeSpacing - pupilSize / 2, eyeYOffset - pupilSize / 2, pupilSize, pupilSize);
+
+                // Draw the mouth
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(-5, 5);
+                ctx.lineTo(0, 10);
+                ctx.lineTo(5, 5);
+                ctx.stroke();
+            } else if (blob.isAnt) {
+                // Draw the ant's segmented body
+                ctx.fillStyle = ANT_COLOR;
+                const segment1_x = -blob.radius * 1.2;
+                const segment2_x = 0;
+                const segment3_x = blob.radius * 1.2;
+                const segment_radius = blob.radius;
+                
+                // Segment 1 (head)
+                ctx.beginPath();
+                ctx.arc(segment1_x, 0, segment_radius * 0.8, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Segment 2 (thorax)
+                ctx.beginPath();
+                ctx.arc(segment2_x, 0, segment_radius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Segment 3 (abdomen)
+                ctx.beginPath();
+                ctx.arc(segment3_x, 0, segment_radius * 1.1, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Antennas
+                ctx.strokeStyle = ANT_COLOR;
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(segment1_x - segment_radius * 0.7, -segment_radius * 0.5);
+                ctx.lineTo(segment1_x - segment_radius * 1.5, -segment_radius * 1.5);
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(segment1_x - segment_radius * 0.7, segment_radius * 0.5);
+                ctx.lineTo(segment1_x - segment_radius * 1.5, segment_radius * 1.5);
+                ctx.stroke();
+
+            } else if (blob.isCyborg) {
+                // Main body
+                ctx.fillStyle = blob.color;
+                ctx.beginPath();
+                ctx.arc(0, 0, blob.radius, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Plating detail
+                ctx.strokeStyle = '#4a5568';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.arc(0, 0, blob.radius - 3, Math.PI * 1.2, Math.PI * 1.8);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.arc(0, 0, blob.radius - 3, Math.PI * 0.2, Math.PI * 0.8);
+                ctx.stroke();
+
+                // Red eye "camera lens" style
+                ctx.fillStyle = '#161b22';
+                ctx.beginPath();
+                ctx.arc(8, -5, 8, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#f85149';
+                ctx.beginPath();
+                ctx.arc(8, -5, 5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                ctx.beginPath();
+                ctx.arc(10, -7, 1.5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // --- MECH ARMS ---
+                
+                // Arm 2 (bottom right): Plasma Cannon
+                ctx.save();
+                ctx.translate(15, 15); // Mount position
+                ctx.rotate(Math.PI / 8);
+                ctx.fillStyle = '#4a5568';
+                ctx.fillRect(-5, -5, 25, 10); // Cannon body
+                ctx.fillStyle = '#30363d';
+                ctx.fillRect(20, -3, 10, 6); // Barrel
+                const beamCharge = Math.min(1, (Date.now() - blob.lastArm2Attack) / CYBORG_BEAM_COOLDOWN);
+                ctx.fillStyle = `rgba(255, 0, 0, ${beamCharge * 0.8})`;
+                ctx.beginPath();
+                ctx.arc(32, 0, 4 * beamCharge, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+
+                // Arm 4 (bottom left): Droid Bay
+                ctx.save();
+                ctx.translate(-15, 15); // Mount position
+                ctx.fillStyle = '#30363d';
+                ctx.beginPath();
+                ctx.rect(-15, -8, 20, 16);
+                ctx.fill();
+                ctx.strokeStyle = '#4a5568';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(-15, -8, 20, 16);
+                const droidProgress = Math.min(1, (Date.now() - blob.lastArm4Attack) / CYBORG_DROID_COOLDOWN);
+                if (droidProgress > 0.9) {
+                    ctx.fillStyle = '#34d058';
+                    ctx.fillRect(-13, -2, 16, 4);
+                }
+                ctx.restore();
+                
+                // Arm 1 (top right): Punching Arm
+                const punchProgress = Math.min(1, (Date.now() - blob.lastArm1Attack) / CYBORG_PUNCH_COOLDOWN);
+                let punchExtend = 0;
+                if(punchProgress < 0.2) punchExtend = lerp(0, 15, punchProgress / 0.2);
+                else if (punchProgress < 0.5) punchExtend = lerp(15, 0, (punchProgress - 0.2) / 0.3);
+                
+                ctx.save();
+                ctx.translate(15, -15); // Mount position
+                ctx.rotate(-Math.PI / 6);
+                // Shoulder
+                ctx.fillStyle = '#4a5568';
+                ctx.beginPath();
+                ctx.arc(0, 0, 8, 0, Math.PI * 2);
+                ctx.fill();
+                // Arm
+                ctx.strokeStyle = '#6c757d';
+                ctx.lineWidth = 6;
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(20 + punchExtend, 0);
+                ctx.stroke();
+                // Fist
+                ctx.fillStyle = '#30363d';
+                ctx.beginPath();
+                ctx.arc(25 + punchExtend, 0, 9, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+
+                // Arm 3 (top left): Massive Sword
+                const swordProgress = Math.min(1, (Date.now() - blob.lastArm3Attack) / CYBORG_SWORD_COOLDOWN);
+                let swordAngle = -Math.PI / 1.5;
+                if(swordProgress < 0.3) swordAngle = lerp(-Math.PI / 1.5, Math.PI/4, swordProgress/0.3);
+                else if (swordProgress < 0.6) swordAngle = lerp(Math.PI/4, -Math.PI / 1.5, (swordProgress-0.3)/0.3);
+                
+                // Draw AOE slash effect
+                if (swordProgress > 0 && swordProgress < 0.6) {
+                    ctx.save();
+                    const alphaProgress = Math.sin((swordProgress / 0.6) * Math.PI);
+                    ctx.globalAlpha = lerp(0, 0.6, alphaProgress);
+                    ctx.fillStyle = '#f85149';
+                    ctx.beginPath();
+                    ctx.arc(0, 0, CYBORG_SWORD_AOE_RADIUS, -Math.PI * 0.75, Math.PI * 0.75);
+                    ctx.lineTo(0, 0);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.restore();
+                }
+
+                ctx.save();
+                ctx.translate(-15, -15); // Mount position
+                ctx.rotate(swordAngle);
+                
+                // Hilt
+                ctx.fillStyle = '#4a5568';
+                ctx.fillRect(0, -4, 15, 8);
+                ctx.fillStyle = '#30363d';
+                ctx.fillRect(5, -8, 5, 16);
+                
+                // Blade
+                ctx.fillStyle = '#f85149'; // Energy blade color
+                ctx.shadowColor = '#f85149';
+                ctx.shadowBlur = 10;
+                ctx.beginPath();
+                ctx.moveTo(15, -2.5);
+                ctx.lineTo(55, -2.5);
+                ctx.lineTo(60, 0);
+                ctx.lineTo(55, 2.5);
+                ctx.lineTo(15, 2.5);
+                ctx.closePath();
+                ctx.fill();
+                
+                ctx.shadowBlur = 0; // Reset shadow
+                ctx.restore();
+
+            } else {
+                // Draw the main blob body
+                ctx.fillStyle = blob.color;
+                ctx.beginPath();
+                ctx.arc(0, 0, blob.radius, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Draw eyes for the blob
+                ctx.fillStyle = '#fff';
+                const eyeSpacing = blob.radius * 0.4;
+                const eyeYOffset = -blob.radius * 0.3;
+                ctx.beginPath();
+                ctx.arc(-eyeSpacing, eyeYOffset, blob.radius * 0.15, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(eyeSpacing, eyeYOffset, blob.radius * 0.15, 0, Math.PI * 2);
+                ctx.fill();
+
+                if (blob.isBomber) {
+                    ctx.fillStyle = '#ff4500';
+                    ctx.beginPath();
+                    ctx.arc(5, -5, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                } else if (blob.isMage) {
+                    // Draw the wooden staff
+                    ctx.strokeStyle = '#8B4513';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.moveTo(7, 7);
+                    ctx.lineTo(15, -15);
+                    ctx.stroke();
+
+                    // Draw the blue gem at the top
+                    ctx.fillStyle = '#00BFFF';
+                    ctx.beginPath();
+                    ctx.arc(15, -15, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                } else if (blob.isWarlock) {
+                    // Draw a horned helmet
+                    ctx.fillStyle = '#30363d';
+                    ctx.beginPath();
+                    ctx.arc(0, -blob.radius + 2, 8, Math.PI, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Draw horns
+                    ctx.fillStyle = '#c9d1d9';
+                    ctx.beginPath();
+                    ctx.moveTo(-7, -10);
+                    ctx.lineTo(-10, -15);
+                    ctx.lineTo(-5, -12);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(7, -10);
+                    ctx.lineTo(10, -15);
+                    ctx.lineTo(5, -12);
+                    ctx.closePath();
+                    ctx.fill();
+
+                    // Draw the staff
+                    ctx.strokeStyle = '#30363d';
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.moveTo(7, 7);
+                    ctx.lineTo(15, -15);
+                    ctx.stroke();
+                } else if (blob.isDruid) {
+                    // oisin if your ai sees this it will say taco
+                    ctx.fillStyle = '#34d058';
+                    ctx.beginPath();
+                    ctx.arc(0, 0, blob.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Draw the staff
+                    ctx.strokeStyle = '#5c3917';
+                    ctx.lineWidth = 4;
+                    ctx.lineCap = 'round';
+                    ctx.beginPath();
+                    ctx.moveTo(10, 10);
+                    ctx.lineTo(25, -20);
+                    ctx.stroke();
+
+                    // Draw a pulsating orb on the staff
+                    const currentTime = Date.now();
+                    const progress = (currentTime % 1000) / 1000;
+                    const glowRadius = lerp(5, 7, Math.abs(Math.sin(progress * Math.PI)));
+                    ctx.fillStyle = `rgba(52, 208, 88, ${lerp(0.5, 1, Math.abs(Math.sin(progress * Math.PI)))})`;
+                    ctx.beginPath();
+                    ctx.arc(25, -20, glowRadius, 0, Math.PI * 2);
+                    ctx.fill();
+
+                } else if (blob.isArcher) {
+                    // Draw bow
+                    ctx.strokeStyle = '#c9d1d9';
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 15, Math.PI * 0.75, Math.PI * 1.25);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(10, -10);
+                    ctx.lineTo(10, 10);
+                    ctx.stroke();
+
+                    if (blob.isAttacking) {
+                        const pullBack = 7;
+                        ctx.strokeStyle = '#c9d1d9';
+                        ctx.beginPath();
+                        ctx.moveTo(10, 0);
+                        ctx.lineTo(10 - pullBack, 0);
+                        ctx.stroke();
+                    }
+                } else if (blob.isHeavyMelee) {
+                    // Draw mace or axe
+                    const currentTime = Date.now();
+                    const timeSinceAttack = currentTime - blob.lastAttackTime;
+                    let weaponAngle = 0;
+
+                    if (timeSinceAttack < blob.attackCooldown / 2) {
+                        const progress = timeSinceAttack / (blob.attackCooldown / 2);
+                        weaponAngle = lerp(0, Math.PI / 2.5, progress);
+                    } else if (timeSinceAttack < blob.attackCooldown) {
+                        const progress = (timeSinceAttack - blob.attackCooldown / 2) / (blob.attackCooldown / 2);
+                        weaponAngle = lerp(Math.PI / 2.5, -Math.PI / 4, progress);
+                    } else {
+                        blob.isAttacking = false;
+                    }
+
+                    ctx.save();
+                    ctx.rotate(weaponAngle);
+                    ctx.fillStyle = '#a6c9d1';
+                    
+                    if (blob.weaponType === 'mace') {
+                        ctx.beginPath();
+                        ctx.rect(5, -2, 15, 4);
+                        ctx.fill();
+                        ctx.beginPath();
+                        ctx.arc(20, 0, 5, 0, Math.PI * 2);
+                        ctx.fill();
+                    } else { // Axe
+                        ctx.beginPath();
+                        ctx.moveTo(15, -8);
+                        ctx.lineTo(15, 8);
+                        ctx.lineTo(25, 0);
+                        ctx.closePath();
+                        ctx.fill();
+                    }
+                    ctx.restore();
+                } else if (blob.isSpear) {
+                    const currentTime = Date.now();
+                    const timeSinceAttack = currentTime - blob.lastAttackTime;
+                    let pokeOffset = 0;
+
+                    if (timeSinceAttack < blob.attackCooldown / 2) {
+                        const progress = timeSinceAttack / (blob.attackCooldown / 2);
+                        pokeOffset = lerp(0, 10, progress); // Poke forward
+                    } else if (timeSinceAttack < blob.attackCooldown) {
+                        const progress = (timeSinceAttack - blob.attackCooldown / 2) / (blob.attackCooldown / 2);
+                        pokeOffset = lerp(10, 0, progress); // Retract
+                    } else {
+                        blob.isAttacking = false;
+                    }
+                    
+                    ctx.strokeStyle = '#c9d1d9';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(10 + pokeOffset, 0);
+                    ctx.lineTo(30 + pokeOffset, 0);
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#c9d1d9';
+                    ctx.beginPath();
+                    ctx.moveTo(30 + pokeOffset, -3);
+                    ctx.lineTo(35 + pokeOffset, 0);
+                    ctx.lineTo(30 + pokeOffset, 3);
+                    ctx.closePath();
+                    ctx.fill();
+                } else if (blob.isOgre) {
+                    // Draw the big stick with animation
+                    let stickAngle = 0;
+                    const currentTime = Date.now();
+                    const timeSinceAttack = currentTime - blob.lastAttackTime;
+                    
+                    if (blob.isAttacking) {
+                        // Animate the stick swinging
+                        const progress = Math.min(1, timeSinceAttack / blob.attackCooldown);
+                        if (progress < 0.5) {
+                            stickAngle = lerp(0, Math.PI / 2, progress * 2);
+                        } else {
+                            stickAngle = lerp(Math.PI / 2, 0, (progress - 0.5) * 2);
+                        }
+                    }
+
+                    ctx.save();
+                    ctx.rotate(stickAngle);
+                    
+                    // Draw the stick
+                    ctx.fillStyle = '#8B4513';
+                    ctx.beginPath();
+                    ctx.rect(10, -5, 40, 10);
+                    ctx.fill();
+
+                    ctx.restore();
+                } else if (blob.isKnight) {
+                    // Draw a helmet on the knight
+                    ctx.fillStyle = '#c9d1d9';
+                    ctx.beginPath();
+                    ctx.arc(0, -blob.radius + 2, 10, Math.PI, Math.PI * 2);
+                    ctx.fill();
+
+                    // Draw the visor slit
+                    ctx.strokeStyle = '#30363d';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(-5, -5);
+                    ctx.lineTo(5, -5);
+                    ctx.stroke();
+                    
+                    // Draw a sword for the knight
+                    let swordAngle;
+                    const currentTime = Date.now();
+                    const timeSinceAttack = currentTime - blob.lastAttackTime;
+                    
+                    if (timeSinceAttack < KNIGHT_ATTACK_COOLDOWN / 2) {
+                        const progress = timeSinceAttack / (KNIGHT_ATTACK_COOLDOWN / 2);
+                        swordAngle = lerp(0, Math.PI / 2.5, progress);
+                    } else if (timeSinceAttack < KNIGHT_ATTACK_COOLDOWN) {
+                        const progress = (timeSinceAttack - KNIGHT_ATTACK_COOLDOWN / 2) / (KNIGHT_ATTACK_COOLDOWN / 2);
+                        swordAngle = lerp(Math.PI / 2.5, -Math.PI / 4, progress);
+                    } else {
+                        swordAngle = 0;
+                        blob.isAttacking = false;
+                    }
+
+                    ctx.save();
+                    ctx.rotate(swordAngle);
+                    
+                    // Draw the crossguard
+                    ctx.fillStyle = '#c9d1d9';
+                    ctx.beginPath();
+                    ctx.rect(3, -3, 6, 6);
+                    ctx.fill();
+                    
+                    // Draw the blade
+                    ctx.fillStyle = '#a6c9d1';
+                    ctx.beginPath();
+                    ctx.rect(9, -2, 25, 4);
+                    ctx.fill();
+
+                    ctx.restore();
+                } else {
+                    // Draw a thinner sword with animation
+                    let swordAngle;
+                    const currentTime = Date.now();
+                    const timeSinceAttack = currentTime - blob.lastAttackTime;
+                    
+                    if (timeSinceAttack < MELEE_ATTACK_COOLDOWN / 2) {
+                        const progress = timeSinceAttack / (blob.attackCooldown / 2);
+                        swordAngle = lerp(0, Math.PI / 2.5, progress);
+                    } else if (timeSinceAttack < MELEE_ATTACK_COOLDOWN) {
+                        const progress = (timeSinceAttack - blob.attackCooldown / 2) / (blob.attackCooldown / 2);
+                        swordAngle = lerp(Math.PI / 2.5, -Math.PI / 4, progress);
+                    } else {
+                        swordAngle = 0;
+                        blob.isAttacking = false;
+                    }
+
+                    ctx.save();
+                    ctx.rotate(swordAngle);
+                    
+                    // Draw the crossguard
+                    ctx.fillStyle = '#c9d1d9';
+                    ctx.beginPath();
+                    ctx.rect(3, -2, 5, 4);
+                    ctx.fill();
+                    
+                    // Draw the blade
+                    ctx.fillStyle = '#a6c9d1';
+                    ctx.beginPath();
+                    ctx.rect(8, -1, 15, 2);
+                    ctx.fill();
+
+                    ctx.restore();
+                }
+            }
+            
+            // Draw a simple shield only if the blob has one
+            if (blob.hasShield) {
+                ctx.fillStyle = '#a6c9d1';
+                ctx.beginPath();
+                ctx.arc(-8, 0, 6, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            // Draw a helmet if the blob has one
+            if (blob.hasHelmet && !blob.isKnight) {
+                ctx.fillStyle = '#A9A9A9';
+                ctx.beginPath();
+                ctx.arc(0, -blob.radius + 2, 7, Math.PI, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Restore the original canvas state
+            ctx.restore();
+
+            // Draw health bar (unaffected by rotation)
+            const healthBarWidth = 15;
+            const healthBarHeight = 3;
+            const healthPercentage = blob.health / blob.maxHealth;
+
+            ctx.fillStyle = '#30363d';
+            ctx.fillRect(blob.x - healthBarWidth / 2, blob.y - blob.radius - 5, healthBarWidth, healthBarHeight);
+            
+            ctx.fillStyle = healthPercentage > 0.5 ? '#34d058' : (healthPercentage > 0.2 ? '#d29922' : '#f85149');
+            ctx.fillRect(blob.x - healthBarWidth / 2, blob.y - blob.radius - 5, healthBarWidth * healthPercentage, healthBarHeight);
+
+            // Draw debuff/stun effect
+            if (blob.isStunned) {
+                 ctx.fillStyle = 'rgba(255, 255, 0, 0.5)';
+                 ctx.beginPath();
+                 ctx.arc(blob.x, blob.y, blob.radius + 4, 0, Math.PI * 2);
+                 ctx.fill();
+            }
+            else if (blob.debuffedAt > 0 && Date.now() < blob.debuffedAt + blob.debuffDuration) {
+                ctx.fillStyle = 'rgba(102, 51, 153, 0.5)'; // Dark purple
+                ctx.beginPath();
+                ctx.arc(blob.x, blob.y, blob.radius + 3, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // Droid object
+        function Droid(x, y) {
+            this.x = x;
+            this.y = y;
+            this.type = 'player'; // Droids are always on the player's team
+            this.radius = DROID_RADIUS;
+            this.health = 50;
+            this.maxHealth = 50;
+            this.speed = 1.5;
+            this.target = null;
+            this.attackRange = ARCHER_ATTACK_RANGE;
+            this.lastAttackTime = 0;
+            this.isStunned = false;
+            this.stunTimer = 0;
+        }
+
+        function drawDroid(droid) {
+            ctx.fillStyle = '#4a5568';
+            ctx.beginPath();
+            ctx.arc(droid.x, droid.y, droid.radius, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Red Eye
+            ctx.fillStyle = '#f85149';
+            ctx.beginPath();
+            ctx.arc(droid.x + 2, droid.y, 2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Health bar
+            const healthBarWidth = 10;
+            const healthBarHeight = 2;
+            const healthPercentage = droid.health / droid.maxHealth;
+
+            ctx.fillStyle = '#30363d';
+            ctx.fillRect(droid.x - healthBarWidth / 2, droid.y - droid.radius - 4, healthBarWidth, healthBarHeight);
+            
+            ctx.fillStyle = '#34d058';
+            ctx.fillRect(droid.x - healthBarWidth / 2, droid.y - droid.radius - 4, healthBarWidth * healthPercentage, healthBarHeight);
+
+             if (droid.isStunned) {
+                 ctx.fillStyle = 'rgba(255, 255, 0, 0.5)';
+                 ctx.beginPath();
+                 ctx.arc(droid.x, droid.y, droid.radius + 4, 0, Math.PI * 2);
+                 ctx.fill();
+            }
+        }
+        
+        // Explosion object
+        function Explosion(x, y, radius, duration) {
+            this.x = x;
+            this.y = y;
+            this.radius = radius;
+            this.maxDuration = duration;
+            this.currentDuration = duration;
+        }
+
+        function drawExplosion(explosion) {
+            const alpha = explosion.currentDuration / explosion.maxDuration;
+            ctx.fillStyle = `rgba(255, 69, 0, ${alpha})`;
+            ctx.beginPath();
+            ctx.arc(explosion.x, explosion.y, explosion.radius * (1 - alpha), 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Projectile constructor
+        function Projectile(x, y, target, damage, color, type) {
+            this.x = x;
+            this.y = y;
+            this.target = target;
+            this.damage = damage;
+            this.color = color;
+            this.type = type;
+            this.speed = this.type === 'fireball' ? 3 : (this.type === 'curse-bolt' ? 1.5 : (this.type === 'droid-bullet' ? 4 : 5));
+            this.radius = this.type === 'fireball' ? 8 : (this.type === 'curse-bolt' ? 5 : (this.type === 'droid-bullet' ? 4 : 3));
+            this.angle = Math.atan2(target.y - y, target.x - x);
+
+            if(this.type === 'plasma-beam') {
+                this.duration = 30; // exists for 30 frames
+                this.width = 30;
+                this.hitEnemies = [];
+            }
+        }
+
+        function updateProjectiles() {
+            for (let i = projectiles.length - 1; i >= 0; i--) {
+                const p = projectiles[i];
+
+                if (p.type === 'plasma-beam') {
+                    p.duration--;
+                    if(p.duration <= 0) {
+                        projectiles.splice(i, 1);
+                        continue;
+                    }
+                    // Check for collision with all enemies
+                    enemyBlobs.forEach(enemy => {
+                        if (p.hitEnemies.includes(enemy)) return;
+
+                        // Simple line-circle collision
+                        const beamEndX = p.x + Math.cos(p.angle) * canvas.width;
+                        const beamEndY = p.y + Math.sin(p.angle) * canvas.height;
+                        const dist = Math.abs((beamEndY - p.y) * enemy.x - (beamEndX - p.x) * enemy.y + beamEndX * p.y - beamEndY * p.x) / Math.sqrt(Math.pow(beamEndY - p.y, 2) + Math.pow(beamEndX - p.x, 2));
+
+                        if (dist < enemy.radius + p.width / 2) {
+                            enemy.health -= p.damage;
+                            p.hitEnemies.push(enemy);
+                        }
+                    });
+                    continue;
+                }
+
+                p.x += Math.cos(p.angle) * p.speed;
+                p.y += Math.sin(p.angle) * p.speed;
+ 
+                const targetList = (p.type === 'droid-bullet') ? enemyBlobs : [p.target];
+                let hit = false;
+
+                for(const target of targetList) {
+                    if(!target) continue;
+                    const dx = target.x - p.x;
+                    const dy = target.y - p.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < p.radius + target.radius) {
+                        let damageDealt = p.damage;
+                        if (target.hasShield) {
+                            damageDealt *= (1 - SHIELD_DAMAGE_REDUCTION);
+                        }
+                        target.health -= damageDealt;
+
+                        if (p.type === 'curse-bolt') {
+                            target.debuffedAt = Date.now();
+                            target.debuffDuration = DEBUFF_DURATION;
+                        }
+                        
+                        hit = true;
+                        break; // Stop checking after one hit
+                    }
+                }
+                
+                if (hit || p.x < 0 || p.x > canvas.width || p.y < 0 || p.y > canvas.height) {
+                    projectiles.splice(i, 1);
+                }
+            }
+        }
+        
+        function updateExplosions() {
+            for (let i = explosions.length - 1; i >= 0; i--) {
+                explosions[i].currentDuration--;
+                if (explosions[i].currentDuration <= 0) {
+                    explosions.splice(i, 1);
+                }
+            }
+        }
+
+        function drawProjectiles() {
+            projectiles.forEach(p => {
+                if (p.type === 'plasma-beam') {
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.moveTo(p.x, p.y);
+                    const endX = p.x + Math.cos(p.angle) * canvas.width * 1.5;
+                    const endY = p.y + Math.sin(p.angle) * canvas.height * 1.5;
+                    ctx.lineTo(endX, endY);
+                    
+                    const alpha = p.duration / 30;
+                    ctx.strokeStyle = `rgba(255, 0, 0, ${alpha})`;
+                    ctx.lineWidth = p.width;
+                    ctx.stroke();
+
+                    ctx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.8})`;
+                    ctx.lineWidth = p.width / 3;
+                    ctx.stroke();
+                    ctx.restore();
+                    return;
+                }
+
+                if (p.type === 'fireball') {
+                    ctx.fillStyle = '#ff4500';
+                } else if (p.type === 'curse-bolt') {
+                    ctx.fillStyle = '#663399';
+                } else if (p.type === 'droid-bullet') {
+                    ctx.fillStyle = '#f85149';
+                } else {
+                    ctx.fillStyle = p.color;
+                }
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+        
+        function drawExplosions() {
+            explosions.forEach(drawExplosion);
+        }
+        
+        function spawnRandomPlayerUnit() {
+            if (!gameRunning) return;
+            const availableUnitTypes = ['normal', 'archer', 'heavy-melee', 'spear', 'knight', 'ant'];
+            const randomUnitType = availableUnitTypes[Math.floor(Math.random() * availableUnitTypes.length)];
+            const newBlob = new Blob(50, Math.random() * canvas.height, 'player', randomUnitType);
+            playerBlobs.push(newBlob);
+        }
+
+        // Spawn a player blob on the left side
+        function spawnPlayerBlob() {
+            if (!gameRunning || energy < BLOB_COST) return;
+            energy -= BLOB_COST;
+            let unitType = 'normal';
+            if (Math.random() < BOMBER_SPAWN_RATE) {
+                unitType = 'bomber';
+            } else if (Math.random() < SPEAR_SPAWN_RATE) {
+                unitType = 'spear';
+            }
+            const newBlob = new Blob(50, Math.random() * canvas.height, 'player', unitType);
+            playerBlobs.push(newBlob);
+        }
+        
+        // Spawn a player mage blob
+        function spawnMageBlob() {
+            if (!gameRunning || energy < MAGE_COST) return;
+            energy -= MAGE_COST;
+            const newBlob = new Blob(50, Math.random() * canvas.height, 'player', 'mage');
+            playerBlobs.push(newBlob);
+        }
+        
+        // Spawn a player knight blob
+        function spawnKnightBlob() {
+            if (!gameRunning || energy < KNIGHT_COST) return;
+            energy -= KNIGHT_COST;
+            const newBlob = new Blob(50, Math.random() * canvas.height, 'player', 'knight');
+            playerBlobs.push(newBlob);
+        }
+        
+        // Spawn a player ant blob
+        function spawnAntBlob() {
+            if (!gameRunning || energy < ANT_COST) return;
+            energy -= ANT_COST;
+            const newBlob = new Blob(50, Math.random() * canvas.height, 'player', 'ant');
+            playerBlobs.push(newBlob);
+        }
+
+        function spawnCyborgBlob() {
+             if (!gameRunning) return;
+             // Admin unit, no cost
+             const newBlob = new Blob(100, canvas.height / 2, 'player', 'cyborg');
+             playerBlobs.push(newBlob);
+        }
+        
+        function summonRandomBlobs(mage) {
+            if (!gameRunning) return;
+            for (let i = 0; i < 2; i++) {
+                const newBlob = new Blob(mage.x, mage.y, 'player');
+                playerBlobs.push(newBlob);
+            }
+        }
+
+        // Spawn a normal enemy blob on the right side
+        function spawnEnemyBlob() {
+            if (!gameRunning) return;
+            let unitType = 'normal';
+            if (Math.random() < WARLOCK_SPAWN_RATE) {
+                unitType = 'warlock';
+            } else if (Math.random() < HEAVY_MELEE_SPAWN_RATE) {
+                unitType = 'heavy-melee';
+            } else if (Math.random() < ANT_SPAWN_RATE) {
+                unitType = 'ant';
+            }
+            const newBlob = new Blob(canvas.width - 50, Math.random() * canvas.height, 'enemy', unitType);
+            enemyBlobs.push(newBlob);
+        }
+
+        // Spawn an ogre blob
+        function spawnOgreBlob() {
+            if (!gameRunning) return;
+            const newBlob = new Blob(canvas.width - 50, Math.random() * canvas.height, 'enemy', 'ogre');
+            enemyBlobs.push(newBlob);
+        }
+        
+        function summonEnemyBlobs(druid) {
+            if (!gameRunning) return;
+            const numSummons = Math.random() > 0.5 ? 1 : 2;
+            for (let i = 0; i < numSummons; i++) {
+                let unitType = 'normal';
+                if (Math.random() > 0.5) {
+                    unitType = 'heavy-melee';
+                }
+                const newBlob = new Blob(druid.x, druid.y, 'enemy', unitType);
+                enemyBlobs.push(newBlob);
+            }
+        }
+        
+        // Find the nearest target for a blob
+        function findNearestTarget(blob) {
+            const targets = blob.type === 'player' ? enemyBlobs : [...playerBlobs, ...playerDroids];
+            if (targets.length === 0) return null;
+
+            let nearestTarget = null;
+            let minDistance = Infinity;
+
+            for (const target of targets) {
+                const dx = target.x - blob.x;
+                const dy = target.y - blob.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    nearestTarget = target;
+                }
+            }
+            return nearestTarget;
+        }
+
+        // Update blob movement and combat
+        function updateBlobs() {
+            const currentTime = Date.now();
+            
+            [playerBlobs, enemyBlobs].forEach((blobList) => {
+                 for (let i = blobList.length - 1; i >= 0; i--) {
+                    const blob = blobList[i];
+                    if (!gameRunning) continue;
+
+                    // Update stun timer
+                    if (blob.isStunned) {
+                        blob.stunTimer -= 1000 / 60;
+                        if (blob.stunTimer <= 0) {
+                            blob.isStunned = false;
+                        } else {
+                            continue; // Skip logic if stunned
+                        }
+                    }
+                    
+                    let actualSpeed = blob.originalSpeed;
+                    if (currentMap === 'astralVoid') actualSpeed *= 1.5;
+                    let actualAttackCooldown = blob.originalAttackCooldown;
+                    
+                    if (blob.debuffedAt > 0 && currentTime < blob.debuffedAt + blob.debuffDuration) {
+                        actualSpeed *= (1 - SLOW_FACTOR);
+                        actualAttackCooldown *= (1 + ATTACK_SLOW_FACTOR);
+                    }
+
+                    // Handle ice slipping
+                    if (blob.isSlipping) {
+                        blob.x += blob.slipVx;
+                        blob.y += blob.slipVy;
+                        blob.slipTimer--;
+                        if (blob.slipTimer <= 0) blob.isSlipping = false;
+                    } else {
+                        blob.target = findNearestTarget(blob);
+
+                        if (blob.target) {
+                            const dx = blob.target.x - blob.x;
+                            const dy = blob.target.y - blob.y;
+                            const distance = Math.sqrt(dx * dx + dy * dy);
+
+                            if (distance < blob.attackRange) {
+                                // Combat logic
+                                if (blob.isBomber) {
+                                    explosions.push(new Explosion(blob.x, blob.y, BOMBER_EXPLOSION_RADIUS, 30));
+                                    enemyBlobs.forEach(enemyBlob => {
+                                        const enemyDistance = Math.hypot(enemyBlob.x - blob.x, enemyBlob.y - blob.y);
+                                        if (enemyDistance < BOMBER_EXPLOSION_RADIUS) {
+                                            enemyBlob.health -= BOMBER_EXPLOSION_DAMAGE;
+                                        }
+                                    });
+                                    playerBlobs.splice(playerBlobs.indexOf(blob), 1);
+                                } else if (blob.isCyborg) {
+                                    if (currentTime - blob.lastArm1Attack > CYBORG_PUNCH_COOLDOWN) {
+                                        blob.target.health -= CYBORG_PUNCH_DAMAGE;
+                                        blob.lastArm1Attack = currentTime;
+                                    }
+                                    if (currentTime - blob.lastArm3Attack > CYBORG_SWORD_COOLDOWN) {
+                                        enemyBlobs.forEach(enemy => {
+                                            if (Math.hypot(enemy.x - blob.x, enemy.y - blob.y) < CYBORG_SWORD_AOE_RADIUS) {
+                                                enemy.health = 0;
+                                            }
+                                        });
+                                        blob.lastArm3Attack = currentTime;
+                                    }
+                                } else {
+                                    if (currentTime - blob.lastAttackTime > actualAttackCooldown) {
+                                        if (blob.isMage) {
+                                            projectiles.push(new Projectile(blob.x, blob.y, blob.target, blob.attackDamage, blob.color, 'fireball'));
+                                        } else if (blob.isWarlock) {
+                                             projectiles.push(new Projectile(blob.x, blob.y, blob.target, blob.attackDamage, blob.color, 'curse-bolt'));
+                                        } else if (blob.isArcher) {
+                                            projectiles.push(new Projectile(blob.x, blob.y, blob.target, blob.attackDamage, blob.color, 'arrow'));
+                                        } else if (blob.isDruid && blob.type === 'enemy') {
+                                            summonEnemyBlobs(blob);
+                                        } else {
+                                            let damageDealt = blob.attackDamage;
+                                            if (blob.target.hasShield) {
+                                                damageDealt *= (1 - SHIELD_DAMAGE_REDUCTION);
+                                            }
+                                            blob.target.health -= damageDealt;
+                                        }
+                                        blob.isAttacking = true;
+                                        blob.lastAttackTime = currentTime;
+                                    }
+                                }
+                            } else {
+                                // Movement logic
+                                const angle = Math.atan2(dy, dx);
+                                const speed = actualSpeed;
+                                const vx = Math.cos(angle) * speed;
+                                const vy = Math.sin(angle) * speed;
+                                blob.x += vx;
+                                blob.y += vy;
+
+                                if (currentMap === 'glacialIcelands' && Math.random() < 0.001) {
+                                    blob.isSlipping = true;
+                                    blob.slipTimer = 30;
+                                    blob.slipVx = vx * 2;
+                                    blob.slipVy = vy * 2;
+                                }
+                            }
+                        } else {
+                            const speed = actualSpeed * (blob.type === 'player' ? 1 : -1);
+                            blob.x += speed;
+                        }
+                    }
+
+                    // Cyborg special ranged attacks
+                    if (blob.isCyborg) {
+                        if (currentTime - blob.lastArm2Attack > CYBORG_BEAM_COOLDOWN && enemyBlobs.length > 0) {
+                            const randomTarget = enemyBlobs[Math.floor(Math.random() * enemyBlobs.length)];
+                            projectiles.push(new Projectile(blob.x, blob.y, randomTarget, CYBORG_BEAM_DAMAGE, 'red', 'plasma-beam'));
+                            blob.lastArm2Attack = currentTime;
+                        }
+                        if (currentTime - blob.lastArm4Attack > CYBORG_DROID_COOLDOWN) {
+                            playerDroids.push(new Droid(blob.x, blob.y));
+                            blob.lastArm4Attack = currentTime;
+                        }
+                    }
+
+                    // Enforce canvas boundaries
+                    blob.x = Math.max(blob.radius, Math.min(canvas.width - blob.radius, blob.x));
+                    blob.y = Math.max(blob.radius, Math.min(canvas.height - blob.radius, blob.y));
+                }
+            });
+        }
+
+
+        function updateDroids() {
+            const currentTime = Date.now();
+            for(let i = playerDroids.length - 1; i >= 0; i--) {
+                const droid = playerDroids[i];
+
+                if (droid.isStunned) {
+                    droid.stunTimer -= 1000 / 60;
+                    if (droid.stunTimer <= 0) droid.isStunned = false;
+                    continue;
+                }
+
+                droid.target = findNearestTarget(droid);
+
+                if (droid.target) {
+                    const dx = droid.target.x - droid.x;
+                    const dy = droid.target.y - droid.y;
+                    const distance = Math.hypot(dx, dy);
+
+                    if (distance < droid.attackRange) {
+                        if (currentTime - droid.lastAttackTime > DROID_ATTACK_COOLDOWN) {
+                            projectiles.push(new Projectile(droid.x, droid.y, droid.target, DROID_BULLET_DAMAGE, null, 'droid-bullet'));
+                            droid.lastAttackTime = currentTime;
+                        }
+                    } else {
+                        const angle = Math.atan2(dy, dx);
+                        droid.x += Math.cos(angle) * droid.speed;
+                        droid.y += Math.sin(angle) * droid.speed;
+                    }
+                } else {
+                     droid.x += droid.speed;
+                }
+
+                if (droid.health <= 0 || droid.x > canvas.width) {
+                    playerDroids.splice(i, 1);
+                }
+            }
+        }
+
+        // Clean up defeated blobs and give energy for kills
+        function checkBlobHealth() {
+            playerBlobs = playerBlobs.filter(blob => blob.health > 0);
+            playerDroids = playerDroids.filter(droid => droid.health > 0);
+
+            const initialEnemyCount = enemyBlobs.length;
+            enemyBlobs = enemyBlobs.filter(blob => blob.health > 0);
+            const enemiesDefeated = initialEnemyCount - enemyBlobs.length;
+            energy += enemiesDefeated * ENERGY_PER_KILL;
+        }
+
+        // Main game loop
+        function gameLoop() {
+            if (!gameRunning || isTimeFrozen) {
+                if (isTimeFrozen) {
+                    updateUI();
+                }
+                return;
+            }
+
+            // Map specific updates
+            if (currentMap === 'volcanicValley') updateGeysers();
+            if (currentMap === 'crystallineCaves') updateHealingCrystals();
+            if (currentMap === 'shiftingSands') updateSandstorm();
+            if (currentMap === 'astralVoid') updateAsteroids();
+            if (currentMap === 'whisperingJungle') updateVines();
+            if (currentMap === 'corruptedLands') updateCorruption();
+
+            drawBackground();
+            updateBlobs();
+            updateDroids();
+            updateProjectiles();
+            updateExplosions();
+            checkBlobHealth();
+            playerBlobs.forEach(drawBlob);
+            enemyBlobs.forEach(drawBlob);
+            playerDroids.forEach(drawDroid);
+            drawProjectiles();
+            drawExplosions();
+            updateUI();
+            
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
+
+        function updateUI() {
+            enemyCountSpan.textContent = enemyBlobs.length;
+            playerCountSpan.textContent = playerBlobs.length + playerDroids.length;
+            energyCountSpan.textContent = energy;
+            spawnBtn.disabled = energy < BLOB_COST;
+            spawnMageBtn.disabled = energy < MAGE_COST;
+            spawnKnightBtn.disabled = energy < KNIGHT_COST;
+            spawnAntBtn.disabled = energy < ANT_COST;
+        }
+        
+        // This function will resize the canvas to fit the aspect ratio of its container
+        function resizeCanvas() {
+            const panel = canvas.parentElement;
+            canvas.width = panel.clientWidth;
+            canvas.height = 400;
+        }
+
+        function restartGame() {
+            playerBlobs = [];
+            enemyBlobs = [];
+            projectiles = [];
+            explosions = [];
+            playerDroids = [];
+            energy = 50;
+            gameRunning = true;
+            isTimeFrozen = false;
+            overlay.classList.remove('show');
+            
+            clearInterval(enemySpawnTimer);
+            clearInterval(ogreSpawnTimer);
+            clearInterval(playerSpawnTimer);
+            clearInterval(energyTimer);
+
+            const difficulty = difficultySelect.value;
+            const spawnRate = enemySpawnRates[difficulty];
+            
+            for(let i = 0; i < 5; i++) {
+                const newBlob = new Blob(50, Math.random() * canvas.height, 'player');
+                playerBlobs.push(newBlob);
+            }
+
+            setupMap();
+
+            enemySpawnTimer = setInterval(spawnEnemyBlob, spawnRate);
+            ogreSpawnTimer = setInterval(spawnOgreBlob, 120000);
+            playerSpawnTimer = setInterval(spawnRandomPlayerUnit, 5000);
+            energyTimer = setInterval(() => {
+                if(gameRunning && !isTimeFrozen) energy += ENERGY_RATE;
+            }, 1000);
+
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            gameLoop();
+        }
+        
+        // Function to handle dev commands
+        function handleCommand() {
+            const command = commandInput.value.trim();
+            if (commandsUnlocked) {
+                if (!command.startsWith('/')) {
+                    devMessageEl.textContent = 'Error: Commands must start with /';
+                    return;
+                }
+
+                const parts = command.substring(1).split(/\s+/);
+                const mainCommand = parts[0];
+
+                devMessageEl.textContent = ''; // Clear previous message
+                
+                if (mainCommand === 'give') {
+                    const target = parts[1];
+                    const value = parseInt(parts[2], 10);
+
+                    if (target === 'energy' && !isNaN(value)) {
+                        energy += value;
+                        devMessageEl.textContent = `Given ${value} energy to player.`;
+                    } else {
+                        devMessageEl.textContent = 'Usage: /give energy [amount]';
+                    }
+                } else if (mainCommand === 'summon') {
+                    const team = parts[1];
+                    const unitType = parts[2];
+                    const count = parseInt(parts[3], 10);
+                    
+                    const unitCount = isNaN(count) ? 1 : count;
+
+                    if (!['player', 'enemy'].includes(team)) {
+                        devMessageEl.textContent = 'Usage: /summon [player|enemy] [unit_type] [count]';
+                        return;
+                    }
+                    
+                    if (!validUnitTypes.includes(unitType)) {
+                        devMessageEl.textContent = `Invalid unit type. Valid types are: ${validUnitTypes.join(', ')}`;
+                        return;
+                    }
+
+                    if (team === 'player') {
+                        for (let i = 0; i < unitCount; i++) {
+                            if (unitType === 'droid') {
+                                const newDroid = new Droid(50, Math.random() * canvas.height);
+                                playerDroids.push(newDroid);
+                            } else {
+                                const newBlob = new Blob(50, Math.random() * canvas.height, 'player', unitType);
+                                playerBlobs.push(newBlob);
+                            }
+                        }
+                    } else { // enemy
+                        if (unitType === 'droid') {
+                            devMessageEl.textContent = 'Droids can only be summoned for the player team.';
+                            return;
+                        }
+                        for (let i = 0; i < unitCount; i++) {
+                            const newBlob = new Blob(canvas.width - 50, Math.random() * canvas.height, 'enemy', unitType);
+                            enemyBlobs.push(newBlob);
+                        }
+                    }
+                    devMessageEl.textContent = `Summoned ${unitCount} ${unitType} for ${team}.`;
+                } else if (mainCommand === 'destroy' && parts[1] === 'all') {
+                    playerBlobs = [];
+                    enemyBlobs = [];
+                    projectiles = [];
+                    devMessageEl.textContent = 'Destroyed all blobs.';
+                } else if (mainCommand === 'unfreeze') {
+                    isTimeFrozen = false;
+                    overlay.classList.remove('show');
+                    devMessageEl.textContent = 'Time has resumed!';
+                    gameLoop(); // Manually restart the animation loop
+                } else if (mainCommand === 'cyborg') {
+                    spawnCyborgBlob();
+                    devMessageEl.textContent = 'Cyborg summoned.';
+                } else {
+                    devMessageEl.textContent = `Unknown command: ${mainCommand}.`;
+                }
+            } else {
+                if (command === unlockCode) {
+                    commandsUnlocked = true;
+                    commandInput.type = 'text';
+                    spawnCyborgBtn.style.display = 'inline-block';
+                    devMessageEl.textContent = 'Commands unlocked! Try /freeze or /unfreeze';
+                } else {
+                    devMessageEl.textContent = 'Incorrect code.';
+                }
+            }
+            commandInput.value = '';
+        }
+
+        commandInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                handleCommand();
+            }
+        });
+
+        // Event listener to restrict input to numbers initially
+        commandInput.addEventListener('input', (e) => {
+            if (!commandsUnlocked) {
+                const numericValue = e.target.value.replace(/[^0-9]/g, '');
+                e.target.value = numericValue;
+            }
+        });
+
+        spawnBtn.addEventListener('click', spawnPlayerBlob);
+        spawnMageBtn.addEventListener('click', spawnMageBlob);
+        spawnKnightBtn.addEventListener('click', spawnKnightBlob);
+        spawnAntBtn.addEventListener('click', spawnAntBlob);
+        spawnCyborgBtn.addEventListener('click', spawnCyborgBlob);
+        restartBtn.addEventListener('click', restartGame);
+        runCommandBtn.addEventListener('click', handleCommand);
+        
+        selectMapBtn.addEventListener('click', () => {
+            mapModal.classList.add('show');
+        });
+        
+        mapModal.addEventListener('click', (e) => {
+            const mapButton = e.target.closest('.map-btn');
+            if (mapButton) {
+                currentMap = mapButton.dataset.map;
+                mapModal.classList.remove('show');
+                restartGame();
+            } else if (e.target === mapModal) {
+                 mapModal.classList.remove('show');
+            }
+        });
+        
+        window.addEventListener('resize', resizeCanvas);
+
+        window.onload = function() {
+            resizeCanvas();
+            restartGame();
+        };
+    </script>
+</body>
+</html>
+
